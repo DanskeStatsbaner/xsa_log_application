@@ -1,0 +1,126 @@
+_schema-version: '2.0'
+ID: XSA_LOG_APPLICATIONS
+description: XSA_LOG_APPLICATIONS
+version: 0.0.1
+
+modules:
+ - name:  XSA_LOG_APPLICATIONS-DWF
+   type: dwf
+#   parameters:
+#      app-name: XSA_LOG_APPLICATIONS-DWF
+   path: DWF
+   requires:
+#      - name: XSA_LOG_APPLICATIONS-uaa
+      - name: XSA_LOG_APPLICATIONS-dws
+   properties:
+     memory: 256M
+
+ - name: XSA_LOG_APPLICATIONS-Backend
+   type: nodejs
+#   parameters:
+#      app-name: XSA_LOG_APPLICATIONS-Backend
+   path: Backend
+   requires:
+#      - name: XSA_LOG_APPLICATIONS-uaa
+      - name: XSA_LOG_APPLICATIONS-container
+      - name: XSA_LOG_APPLICATIONS-dws
+   properties:
+     memory: 512M
+     API_END_POINT: "${xs-api-url}"
+#     SAP_JWT_TRUST_ACL: "[{\"clientid\":\"*\",\"identityzone\":\"*\"}]"
+   provides:
+    - name:  XSA_LOG_APPLICATIONS-Backend
+      properties:
+       service_url: ${default-url}
+
+ - name: XSA_LOG_APPLICATIONS-Database
+   type: hdb
+#   parameters:
+#      app-name: XSA_LOG_APPLICATIONS-Database
+   path: Database
+   requires:
+    - name: XSA_LOG_APPLICATIONS-container
+      properties:
+        TARGET_CONTAINER: '~{hdi-container-name}'
+   
+    - name: jobscheduler
+      group: SERVICE_REPLACEMENTS
+
+      properties:
+        key: jobscheduler
+        service: ~{the-service-name}
+                          
+
+
+   
+    - name: dwf-toe-hdi
+      group: SERVICE_REPLACEMENTS
+
+      properties:
+        key: dwf-toe-hdi
+        service: ~{the-service-name}
+                          
+
+
+   properties:
+     memory: 256M
+     HDI_DEPLOY_OPTIONS: { "auto_undeploy": true }
+
+resources:
+# - name: XSA_LOG_APPLICATIONS-uaa
+#   type: com.sap.xs.uaa
+#   parameters:
+#     service-name: XSA_LOG_APPLICATIONS-uaa
+#     service-plan: space
+#     config:
+#         xsappname: XSA_LOG_APPLICATIONS
+#         scopes:
+#          - name: $XSAPPNAME.TOE
+#            description: access for TOE
+#            grant-as-authority-to-apps:
+#             - dwf-toe
+#             - dwf-runtime
+#            granted-apps:
+#             - dwf-toe
+#             - dwf-runtime
+#         authorities:
+#          - $ACCEPT_GRANTED_AUTHORITIES
+#         role-templates:
+#           - name: User
+#             description: Access API
+#             scope-references:
+#              - $XSAPPNAME.TOE
+
+ - name: XSA_LOG_APPLICATIONS-dws
+   properties:
+      dwf-edw-client-name: ${service-name}
+#      dwf-edw-client-name: XSA_LOG_APPLICATIONS-dws
+#   parameters:
+#      service-name: XSA_LOG_APPLICATIONS-dws
+   type: com.sap.xs.dwf-edw-client
+ - name: XSA_LOG_APPLICATIONS-container
+   properties:
+      hdi-container-name: ${service-name}
+#      hdi-container-name: XSA_LOG_APPLICATIONS-container
+   type: com.sap.xs.hdi-container
+   parameters:
+     config:
+        schema: XSA_LOG_APPLICATIONS 
+     service-keys:
+     - name: dwf-monitor
+
+ - name: jobscheduler
+   parameters:
+      service-name: jobscheduler-db-container
+   properties:
+      the-service-name: ${service-name}
+   type: org.cloudfoundry.existing-service
+
+
+ - name: dwf-toe-hdi
+   parameters:
+      service-name: dwf-toe-hdi
+   properties:
+      the-service-name: ${service-name}
+   type: org.cloudfoundry.existing-service
+

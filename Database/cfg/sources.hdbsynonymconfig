@@ -1,0 +1,9 @@
+{
+  "DataWareHouse.Database.Synonyms::LogMessage": {
+    "target": {
+      "object": "com.sap.dwf.toe::TaskLogs.LogMessage",
+      "*.configure": "dwf-toe-hdi"
+    }
+  }
+  
+}  

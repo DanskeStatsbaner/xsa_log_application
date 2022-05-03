@@ -1,0 +1,50 @@
+DO BEGIN
+DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
+DECLARE environment,lowercase_environment NVARCHAR (50);
+
+SELECT DISTINCT
+	CASE 
+		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
+		WHEN "SYSTEM_ID" = 'NPT'	THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
+		END AS "Environment" INTO environment
+		FROM M_DATABASE;
+ 
+ lowercase_environment := LOWER(:environment);
+
+SELECT INSTANCEID,STARTTIME,ENDTIME, STATUS, TASKCHAINID,FINISHED, RUN_TIME, DESCRIPTION, TASKTIMEOUT, RESPONSIBLE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, SERVICEURI,CONTAINER,MODULE, ENVIRONMENT FROM (
+                SELECT 
+                    Log.INSTANCEID,
+                    Log.LOGID,
+                    Log.STATUS,
+                    Log.NAMESPACE,
+                    Log.TASKCHAINID,
+                    Log.SCHEDULEDESCRIPTION,
+                    ADD_SECONDS(Log.STARTTIME, :seconds_Dif) AS STARTTIME,
+                    ADD_SECONDS(Log.ENDTIME, :seconds_Dif) AS ENDTIME,
+                    Log.FINISHED,
+                    Log.RUN_TIME,
+                    Log.DESCRIPTION,
+                                   TaskChainHeader.VALIDTO,
+                    TaskChainHeader.CHANGEDBY,
+                    TaskChainHeader.ACTIVATIONSTATUS,
+                    TaskChainHeader.TASKTIMEOUT,
+                    TaskChainHeader.RESPONSIBLE,
+                    TaskService.SERVICEURI,
+                    SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI )  AS "CONTAINER",
+                    'backend' AS "MODULE",
+                    SUBSTR_REGEXPR('(?<="name":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_NAME",
+                     SUBSTR_REGEXPR('(?<="email":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_EMAIL",
+                    ROW_NUMBER() OVER (PARTITION BY Log.TASKCHAINID ORDER BY Log.STARTTIME DESC) as ROWNUMBER,
+                    :environment AS ENVIRONMENT
+                FROM "com.sap.dwf.toe::Log" Log
+                JOIN "com.sap.dwf.toe::TaskChain.TaskChainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
+                AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID --AND TaskChainHeader.VALIDTO IS NULL
+                JOIN "com.sap.dwf.toe::TaskType.TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
+            --    JOIN "com.sap.dwf.toe::TaskLogs.LogMessage" LogMessage ON Log.LOGID = LogMessage.LOGID 
+                WHERE  Log.STATUS IN ('OK','ACTIVE','ERROR') AND Log.ENDTIME > '2022-01-01'
+                AND RESPONSIBLE IS NOT NULL
+           
+                ORDER BY Log.STARTTIME DESC
+            ) WHERE ROWNUMBER = 1;
+END;            

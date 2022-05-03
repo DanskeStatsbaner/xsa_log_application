@@ -1,0 +1,23 @@
+{
+	"name": "dw-backend",
+	"version": "0.0.1",
+	"private": true,
+	"description": "Data Warehouse Backend",
+	"keywords": [],
+	"author": "",
+	"license": "",
+	"main": "app.js",
+	"dependencies": {
+		"body-parser": "1.19.0",
+		"express": "4.17.1",
+		"passport": "0.4.1",
+		"@sap/xsenv": "3.1.0",
+		"@sap/dwf-dws-client": "~2.6.0"
+	},
+	"scripts": {
+		"start": "node app.js"
+	},
+	"engines": {
+		"node": "^12.0.0 || ^14.0.0"
+	}
+}
