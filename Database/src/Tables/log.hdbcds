@@ -1,0 +1,21 @@
+namespace DataWareHouse.Database.Tables;
+
+context log {
+
+    /*@@layout{"layoutInfo":{"x":-369,"y":-129.5}}*/
+  
+
+    entity procedure_run {
+        
+        key NAME            : String(1024);
+        key RUNTIME_START     : UTCTimestamp not null;
+        key RUNTIME_END     : UTCTimestamp not null;
+        COMMENT : String(1024);
+            
+    };
+
+  
+
+   
+    
+};

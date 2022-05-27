@@ -1,0 +1,26 @@
+{
+	"XSA_KEY_VAULT": {
+		"object_owner": {
+			"container_roles": [
+				"external_access_g#"
+			]
+		},
+		"application_user": {
+			"container_roles": [
+				"external_access"
+			]
+		}
+	},
+		"dwf-toe-hdi": {
+		"object_owner": {
+			"container_roles": [
+				"external_acycess_g#"
+			]
+		},
+		"application_user": {
+			"container_roles": [
+				"external_acycess"
+			]
+		}
+	}
+}

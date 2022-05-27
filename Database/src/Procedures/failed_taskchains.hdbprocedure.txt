@@ -1,0 +1,117 @@
+PROCEDURE "DataWareHouse.Database.Procedures::failed_taskchains"( )
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN SEQUENTIAL EXECUTION
+
+DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
+DECLARE ENVIRONMENT NVARCHAR (50);
+DECLARE  INSTANCEID, LOGID, STATUS, NAMESPACE, TASKCHAINID, SCHEDULEDECSRIPTION, STARTIME, ENDTIME, FINISHED, RUN_TIME, DESCRIPTION, VALIDTO, CHANGEDBY, ACTIVATIONSTATUS, TASKTIMEOUT, RESPONSIBLE, SERVICEURL, CONTAINER, MODULE, RESPINSIBLE_NAME
+RESPONSIBLE_EMAIL NVARCHAR (2000);
+
+
+
+
+RUNTIME_START = CURRENT_TIMESTAMP;
+HANA_LOG_NAME ='failed_taskchains';
+SELECT IFNULL(MAX("RUNTIME_START"),'2022-01-01 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run";
+
+
+SELECT DISTINCT
+	CASE 
+		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
+		WHEN "SYSTEM_ID" = 'NPT' THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
+		END AS "Environment" INTO ENVIRONMENT
+		FROM M_DATABASE;
+ 
+
+
+FAILED_CHAINS = SELECT INSTANCEID,STARTTIME,ENDTIME, STATUS, TASKCHAINID,FINISHED, RUN_TIME, DESCRIPTION, TASKTIMEOUT, RESPONSIBLE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, SERVICEURI,CONTAINER,MODULE, ENVIRONMENT FROM (
+                SELECT 
+                    Log.INSTANCEID,
+                    Log.LOGID,
+                    Log.STATUS,
+                    Log.NAMESPACE,
+                    Log.TASKCHAINID,
+                    Log.SCHEDULEDESCRIPTION,
+                    ADD_SECONDS(Log.STARTTIME, :seconds_Dif) AS STARTTIME,
+                    ADD_SECONDS(Log.ENDTIME, :seconds_Dif) AS ENDTIME,
+                    Log.FINISHED,
+                    Log.RUN_TIME,
+                    Log.DESCRIPTION,
+                    TaskChainHeader.VALIDTO AS VALIDTO,
+                    TaskChainHeader.CHANGEDBY AS CHANGEDBY,
+                    TaskChainHeader.ACTIVATIONSTATUS AS ACTIVATIONSTATUS,
+                    TaskChainHeader.TASKTIMEOUT AS TASKTIMEOUT,
+                    TaskChainHeader.RESPONSIBLE AS REPONSIBLE,
+                    TaskService.SERVICEURI AS SERVICEURL ,
+                    SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI )  AS "CONTAINER",
+                    'backend' AS "MODULE",
+                    SUBSTR_REGEXPR('(?<="name":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_NAME",
+                     SUBSTR_REGEXPR('(?<="email":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_EMAIL",
+                    ROW_NUMBER() OVER (PARTITION BY Log.TASKCHAINID ORDER BY Log.STARTTIME DESC) as ROWNUMBER
+                FROM "com.sap.dwf.toe::Log" Log
+                JOIN "com.sap.dwf.toe::TaskChain.TaskChainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
+                AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID --AND TaskChainHeader.VALIDTO IS NULL
+                JOIN "com.sap.dwf.toe::TaskType.TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
+            --    JOIN "com.sap.dwf.toe::TaskLogs.LogMessage" LogMessage ON Log.LOGID = LogMessage.LOGID 
+                WHERE  Log.STATUS IN ('OK','ACTIVE','ERROR') AND Log.ENDTIME > :LAST_RUN
+                
+           
+                ORDER BY Log.STARTTIME DESC
+            ) WHERE ROWNUMBER = 1;
+
+  CALL "DataWareHouse.Database.Synonyms::token"(
+	APP => 'AP_HUMIO',
+	EXCEPTION_ON_ERROR => 1,
+	JWT => ingesttoken
+);
+
+
+
+IF RECORD_COUNT(:FAILED_CHAINS) >= 1 THEN
+		FOR k IN 1..RECORD_COUNT(:FAILED_CHAINS) DO 
+		INSTANCEID = :FAILED_CHAINS."INSTANCEID"[:k];
+		LOGID = :FAILED_CHAINS."LOGID"[:k];
+		STATUS = :FAILED_CHAINS."STATUS"[:k];
+		NAMESPACE = :FAILED_CHAINS."NAMESPACE"[:k];
+		TASKCHAINID = :FAILED_CHAINS."TASKCHAINID"[:k];
+		SCHEDULEDECSRIPTION = :FAILED_CHAINS."SCHEDULEDECSRIPTION"[:k];
+		STARTIME = :FAILED_CHAINS."STARTIME"[:k];
+		ENDTIME = :FAILED_CHAINS."ENDTIME"[:k];
+		FINISHED = :FAILED_CHAINS."FINISHED"[:k];
+		RUN_TIME = :FAILED_CHAINS."RUN_TIME"[:k];
+		DESCRIPTION = :FAILED_CHAINS."DESCRIPTION"[:k];
+		VALIDTO = :FAILED_CHAINS."VALIDTO"[:k];
+		CHANGEDBY = :FAILED_CHAINS."CHANGEDBY"[:k];
+		ACTIVATIONSTATUS = :FAILED_CHAINS."ACTIVATIONSTATUS"[:k];
+		TASKTIMEOUT = :FAILED_CHAINS."TASKTIMEOUT"[:k];
+		RESPONSIBLE = :FAILED_CHAINS."RESPONSIBLE"[:k];
+		SERVICEURL = :FAILED_CHAINS."SERVICEURL"[:k];
+		CONTAINER = :FAILED_CHAINS."CONTAINER"[:k];
+		MODULE = :FAILED_CHAINS."MODULE"[:k];
+		RESPINSIBLE_NAME = :FAILED_CHAINS."RESPINSIBLE_NAME"[:k];
+		RESPONSIBLE_EMAIL = :FAILED_CHAINS."RESPONSIBLE_EMAIL"[:k];
+	
+		
+			CALL "DataWareHouse.Database.Synonyms::humio"(
+    MESSAGE => 'Native HANA system log',
+    LOG_LEVEL => 'WARNING',
+    HOST => 'HANA',
+    SRC => 'failed_taskchains.hdbprocedure',
+       ATTRIBUTES => '"ENVIRONMENT":"' || :ENVIRONMENT || '", "OOM_TIME":"' || :OOM_TIME || '", "HOST":"' || :HOST || '", "STATEMENT_HASH":"' || :STATEMENT_HASH || '", "STATEMENT_ID":"' || :STATEMENT_ID  || '", "NUM_OOMS":"' || :NUM_OOMS 
+       || '", "MEM_REQ_GB":"' || :MEM_REQ_GB || '", "MEM_USED_GB":"' || :MEM_USED_GB ||  '", "MEM_LIMIT_GB":"' || :MEM_LIMIT_GB || '", "EVENT_REASON":"' || :EVENT_REASON || '", "WORKLOAD_CLASS_NAME":"' || :WORKLOAD_CLASS_NAME || '", "TRACEFILE_NAME":"' || :TRACEFILE_NAME 
+       || '", "EXECUTION_ENGINE":"' || :EXECUTION_ENGINE || '", "SCHEMA_NAME":"' || :SCHEMA_NAME --|| '", "STATEMENT_STRING":"' || :STATEMENT_STRING
+       ||'"',
+    JWT => :ingesttoken,
+    EXCEPTION_ON_ERROR => 1
+);
+		END FOR;
+	
+	END IF; 
+
+ RUNTIME_END = CURRENT_TIMESTAMP;
+	INSERT INTO "DataWareHouse.Database.Tables::log.procedure_run" ("NAME", "RUNTIME_START", "RUNTIME_END", "COMMENT") VALUES(:HANA_LOG_NAME, :RUNTIME_START, :RUNTIME_END, :HANA_LOG_COMMENT);	
+
+END;            

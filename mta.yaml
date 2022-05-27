@@ -43,11 +43,22 @@ modules:
       properties:
         TARGET_CONTAINER: '~{hdi-container-name}'
    
-    - name: jobscheduler
+   
+    - name: XSA_KEY_VAULT
       group: SERVICE_REPLACEMENTS
 
       properties:
-        key: jobscheduler
+        key: XSA_KEY_VAULT
+        service: ~{the-service-name}
+                          
+
+
+   
+    - name: jobscheduler-db-container
+      group: SERVICE_REPLACEMENTS
+
+      properties:
+        key: jobscheduler-db-container
         service: ~{the-service-name}
                           
 
@@ -109,7 +120,14 @@ resources:
      service-keys:
      - name: dwf-monitor
 
- - name: jobscheduler
+ - name: XSA_KEY_VAULT
+   parameters:
+      service-name: XSA_KEY_VAULT-CONTAINER
+   properties:
+      the-service-name: ${service-name}
+   type: org.cloudfoundry.existing-service
+
+ - name: jobscheduler-db-container
    parameters:
       service-name: jobscheduler-db-container
    properties:
