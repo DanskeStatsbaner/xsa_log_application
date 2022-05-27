@@ -14,12 +14,12 @@
 		"dwf-toe-hdi": {
 		"object_owner": {
 			"container_roles": [
-				"external_acycess_g#"
+				"external_access_g#"
 			]
 		},
 		"application_user": {
 			"container_roles": [
-				"external_acycess"
+				"external_access"
 			]
 		}
 	}
