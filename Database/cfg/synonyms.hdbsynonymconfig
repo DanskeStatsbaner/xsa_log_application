@@ -16,11 +16,5 @@
       "object": "DUMMY",
       "schema": "SYS"
     }
-  },
-  "DataWareHouse.Database.Synonyms::Synonym_3": {
-    "target": {
-      "object": "com.sap.dwf.toe::TaskLogs.LogChain",
-      "*.configure": "dwf-toe-hdi"
-    }
   }
 }
