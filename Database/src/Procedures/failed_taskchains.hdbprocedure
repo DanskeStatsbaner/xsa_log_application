@@ -89,7 +89,9 @@ TASKCHAINID = :override."TASKCHAINID"[:k];
                 
                
                
-               humio = SELECT * FROM :chains a
+               errors = SELECT *,
+               ROW_NUMBER() OVER (PARTITION BY a.LOG_TASKCHAINID ORDER BY a.STARTTIME DESC) as ROWNUMBER
+               FROM :chains a
                JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID)
             	WHERE 
             	(default_override= 'FALSE' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN)
@@ -99,6 +101,8 @@ TASKCHAINID = :override."TASKCHAINID"[:k];
                 (default_override = 'OVERRIDE_ERROR' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN AND (SELECT COUNT(*) FROM :chains where STATUS = 'ERROR' AND STARTTIME > ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)) > OVERRIDE_ERROR_AMOUNT)
                 AND "STATUS" = 'ERROR'
                 ORDER BY STARTTIME DESC;
+                
+                humio = select * from :errors where ROWNUMBER = 1;
                 
 FOR k IN 1..RECORD_COUNT(:humio) DO 
 		INSTANCEID = :humio."INSTANCEID"[:k];
