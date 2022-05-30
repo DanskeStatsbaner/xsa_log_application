@@ -1,0 +1,137 @@
+PROCEDURE "DataWareHouse.Database.Procedures::failed_taskchains"( )
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN SEQUENTIAL EXECUTION
+
+
+
+DECLARE k INTEGER;
+DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
+DECLARE RUNTIME_START, RUNTIME_END, LAST_RUN, FIRST_RUN TIMESTAMP;
+DECLARE ENVIRONMENT, HANA_LOG_NAME, lowercase_environment NVARCHAR (50);
+DECLARE  INSTANCEID, LOGID, STATUS, NAMESPACE, TASKCHAINID, SCHEDULEDECSRIPTION, STARTIME, ENDTIME, FINISHED, RUN_TIME, DESCRIPTION, VALIDTO, CHANGEDBY, ACTIVATIONSTATUS, TASKTIMEOUT, 
+RESPONSIBLE, SERVICEURL, CONTAINER, MODULE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, HANA_LOG_COMMENT NVARCHAR (2000);
+DECLARE ingesttoken NVARCHAR(2500);
+
+
+
+FIRST_RUN = '2022-05-23';
+RUNTIME_START = CURRENT_TIMESTAMP;
+HANA_LOG_NAME ='failed_taskchains';
+SELECT IFNULL(MAX("RUNTIME_START"),'2022-01-01 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run";
+
+
+/*SELECT DISTINCT
+	CASE 
+		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
+		WHEN "SYSTEM_ID" = 'NPT' THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
+		END AS "Environment" INTO ENVIRONMENT
+		FROM M_DATABASE;*/
+ 
+ lowercase_environment := LOWER(:ENVIRONMENT);
+ 
+ 
+   CALL "DataWareHouse.Database.Synonyms::token"(
+	APP => 'AP_HUMIO',
+	EXCEPTION_ON_ERROR => 1,
+	JWT => ingesttoken
+);
+ 
+override = SELECT 
+TASKCHAINID,
+OVERRIDE_OK_AMOUNT,
+CASE 
+WHEN OVERRIDE_OK_NOTATION = 'D' THEN OVERRIDE_OK_SPAN*60*60*24
+WHEN OVERRIDE_OK_NOTATION = 'H' THEN OVERRIDE_OK_SPAN*60*60
+WHEN OVERRIDE_OK_NOTATION = 'M' THEN OVERRIDE_OK_SPAN*60
+WHEN OVERRIDE_OK_NOTATION = 'S' THEN OVERRIDE_OK_SPAN
+END AS OVERRIDE_OK,
+OVERRIDE_ERROR_AMOUNT,
+CASE 
+WHEN OVERRIDE_ERROR_NOTATION = 'D' THEN OVERRIDE_ERROR_SPAN*60*60*24
+WHEN OVERRIDE_ERROR_NOTATION = 'H' THEN OVERRIDE_ERROR_SPAN*60*60
+WHEN OVERRIDE_ERROR_NOTATION = 'M' THEN OVERRIDE_ERROR_SPAN*60
+WHEN OVERRIDE_ERROR_NOTATION = 'S' THEN OVERRIDE_ERROR_SPAN
+END AS OVERRIDE_ERROR,
+CASE
+WHEN OVERRIDE_OK_AMOUNT IS NOT NULL AND OVERRIDE_OK_NOTATION  IS NOT NULL AND OVERRIDE_OK_SPAN  IS NOT NULL THEN 'OVERRIDE_OK'
+WHEN  OVERRIDE_ERROR_AMOUNT IS NOT NULL AND OVERRIDE_ERROR_SPAN IS NOT NULL AND OVERRIDE_ERROR_NOTATION IS NOT NULL THEN 'OVERRIDE_ERROR'
+ELSE 'FALSE'
+END AS default_override
+FROM "DataWareHouse.Database.Tables::log.log_rules"
+;
+
+FOR k IN 1..RECORD_COUNT(:override) DO 
+
+TASKCHAINID = :override."TASKCHAINID"[:k];
+	       chains=  SELECT 
+                    Log.INSTANCEID AS INSTANCEID,
+                    Log.LOGID AS LOGID,
+                    Log.STATUS AS STATUS,
+                    Log.NAMESPACE AS NAMESPACE,
+                    Log.TASKCHAINID AS LOG_TASKCHAINID ,
+                    ADD_SECONDS(Log.STARTTIME, :seconds_Dif) AS STARTTIME,
+                    ADD_SECONDS(Log.ENDTIME, :seconds_Dif) AS ENDTIME,
+                    Log.FINISHED AS FINISHED,
+                    Log.RUN_TIME AS RUN_TIME,
+                    Log.DESCRIPTION AS DESCRIPTION,
+                    SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI )  AS "CONTAINER",
+                    SUBSTR_REGEXPR('(?<="name":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_NAME",
+                    SUBSTR_REGEXPR('(?<="email":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_EMAIL"
+                FROM "DataWareHouse.Database.VirtualTables::Log" Log
+                JOIN "DataWareHouse.Database.VirtualTables::TaskchainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
+                AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID AND TaskChainHeader.VALIDTO IS NULL
+                JOIN "DataWareHouse.Database.VirtualTables::TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
+                WHERE   
+                Log.TASKCHAINID = :TASKCHAINID;
+                
+               
+               
+               humio = SELECT * FROM :chains a
+               JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID)
+            	WHERE 
+            	(default_override= 'FALSE' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN)
+                OR
+                (default_override = 'OVERRIDE_OK' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN  AND (SELECT COUNT(*) FROM :chains where STATUS = 'OK' AND STARTTIME > ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)) < OVERRIDE_OK_AMOUNT)
+                OR
+                (default_override = 'OVERRIDE_ERROR' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN AND (SELECT COUNT(*) FROM :chains where STATUS = 'ERROR' AND STARTTIME > ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)) > OVERRIDE_ERROR_AMOUNT)
+                AND "STATUS" = 'ERROR'
+                ORDER BY STARTTIME DESC;
+                
+FOR k IN 1..RECORD_COUNT(:humio) DO 
+		INSTANCEID = :humio."INSTANCEID"[:k];
+		LOGID = :humio."LOGID"[:k];
+		STATUS = :humio."STATUS"[:k];
+		NAMESPACE = :humio."NAMESPACE"[:k];
+		TASKCHAINID = :humio."LOG_TASKCHAINID"[:k];
+		STARTIME = :humio."STARTTIME"[:k];
+		ENDTIME = :humio."ENDTIME"[:k];
+		FINISHED = :humio."FINISHED"[:k];
+		RUN_TIME = :humio."RUN_TIME"[:k];
+		DESCRIPTION = :humio."DESCRIPTION"[:k];
+		CONTAINER = :humio."CONTAINER"[:k];
+		RESPONSIBLE_NAME = :humio."RESPONSIBLE_NAME"[:k];
+		RESPONSIBLE_EMAIL = :humio."RESPONSIBLE_EMAIL"[:k];
+	
+		
+			CALL "DataWareHouse.Database.Synonyms::humio"(
+    MESSAGE => 'Native HANA system log',
+    LOG_LEVEL => 'WARNING',
+    HOST => 'HANA',
+    SRC => 'failed_taskchains.hdbprocedure',
+       ATTRIBUTES => '"ENVIRONMENT":"' || 'PROD' || '", "INSTANCEID":"' || :INSTANCEID || '", "LOGID":"' || :LOGID || '", "STATUS":"' || :STATUS || '", "NAMESPACE":"' || :NAMESPACE  || '", "TASKCHAINID":"' || :TASKCHAINID
+       || '", "STARTIME":"' || :STARTIME || '", "ENDTIME":"' || :ENDTIME ||  '", "FINISHED":"' || :FINISHED || '", "RUN_TIME":"' || :RUN_TIME || '", "DESCRIPTION":"' || :DESCRIPTION ||  '", "CONTAINER":"' || :CONTAINER || '", "RESPONSIBLE_NAME":"' || :RESPONSIBLE_NAME || '", "RESPONSIBLE_EMAIL":"' || :RESPONSIBLE_EMAIL
+       ||'"',
+    JWT => :ingesttoken,
+    EXCEPTION_ON_ERROR => 1
+);
+END FOR;
+
+END FOR;
+
+RUNTIME_END = CURRENT_TIMESTAMP;
+INSERT INTO "DataWareHouse.Database.Tables::log.procedure_run" ("NAME", "RUNTIME_START", "RUNTIME_END", "COMMENT") VALUES(:HANA_LOG_NAME, :RUNTIME_START, :RUNTIME_END, :HANA_LOG_COMMENT);
+ 
+END;            

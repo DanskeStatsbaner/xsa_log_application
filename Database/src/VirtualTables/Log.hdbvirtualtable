@@ -1,2 +1,1 @@
-VIRTUAL TABLE "DataWareHouse.Database.VirtualTables::Log" AT "HANA_DWF_TOE"." "."1BA85BC5A5AD496E9D65BAD1919B0093"."com.sap.dwf.toe::Log"
-
+VIRTUAL TABLE "DataWareHouse.Database.VirtualTables::Log" AT "HANA_DWF_TOE"." "."28A88D4D539F4CF69D3CABDB77B29793"."com.sap.dwf.toe::Log" 

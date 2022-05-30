@@ -7,14 +7,25 @@ context log {
 
     entity procedure_run {
         
-        key NAME            : String(1024);
-        key RUNTIME_START     : UTCTimestamp not null;
-        key RUNTIME_END     : UTCTimestamp not null;
+        key NAME            	: String(1024);
+        key RUNTIME_START   	: UTCTimestamp not null;
+        key RUNTIME_END     	: UTCTimestamp not null;
         COMMENT : String(1024);
             
     };
 
-  
+    entity log_rules{
+        
+        key TASKCHAINID            	: String(1024);
+        OVERRIDE_OK_AMOUNT  	: Integer;
+        OVERRIDE_OK_SPAN    	: Integer;
+        OVERRIDE_OK_NOTATION    : String(1);
+        OVERRIDE_ERROR_AMOUNT  	: Integer;
+        OVERRIDE_ERROR_SPAN    	: Integer;
+        OVERRIDE_ERROR_NOTATION : String(1);
+        COMMENT : String(1024);
+            
+    };
 
    
     
