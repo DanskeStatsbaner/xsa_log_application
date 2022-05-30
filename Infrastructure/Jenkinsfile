@@ -1,0 +1,248 @@
+
+pipeline {
+
+    agent {
+        label "linux"
+    }
+    parameters {
+        booleanParam(name: 'TagLatest', defaultValue: false, description: 'Tag this image as latest')
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '30', artifactNumToKeepStr: '30'))
+        timestamps()
+        disableConcurrentBuilds()
+    }
+    environment {
+        daProject = "${env.GIT_URL.replaceFirst(/^.*\/([^\/]+?).git$/, '$1')}"
+        projectName  = "${daProject.toLowerCase()}"
+        deployTo = "sit"
+        version = "1.0.0.${env.BUILD_NUMBER}"
+        suffix = "${env.GIT_COMMIT}-${env.GIT_BRANCH.replace('/', '-')}"
+        packageVersion = "${version}-${suffix}"
+        jobName = "${daProject.toUpperCase()}"
+        artifactoryServerId = "artifactory" 
+        findSchema = "'schema: ${daProject.toUpperCase()}'" 
+        findShipRole = "'SHIP.${daProject.toUpperCase()}'"       
+        findService = "'${daProject.toUpperCase()}-container'" 
+        findVersion = "'3.11.9'"
+        apiKey = credentials("Octopus-Api")
+        octoName = projectName.toUpperCase()
+        firstCharInProject = "${daProject.substring(0, 1).toUpperCase()}"
+        parentProject = "XSA_MASTER"
+        octoUrl = "https://octopus.azure.dsb.dk"
+    }
+
+    stages {
+    
+        stage ("Octopus Project Sync") {
+            agent { label "windows" }
+            steps {
+                bat 'del *.nupkg'
+                bat 'del *.zip'
+              
+                rtDownload(
+                    spec: '''{ "files": [
+                        {
+                            "pattern": "octopus-dataarten/dataART.xsa_octopus.*",
+                            "sortBy": ["created"],
+                            "sortOrder": "desc",
+                            "limit": 1
+                        }
+                    ] }''',
+                    serverId: "${artifactoryServerId}"
+                )
+              
+                bat 'ren *.nupkg xsa_octopus.zip'
+                unzip zipFile: "xsa_octopus.zip"
+
+                bat 'xcopy SpaceCloner-master\\* .\\* /s /e /i /y'
+
+                powershell """
+                    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+                    ./SetupOctopusProject.ps1 -fromProjectName $parentProject -toProjectName $octoName -octopusUrl $octoUrl -octopusApiKey $apiKey
+                    """
+            }
+        }  
+      stage ("Check Code") {
+            steps {
+
+                   echo "****************************   test container   ***************************"
+              
+                   echo "*** find schema i mta.yaml: $findSchema ***"
+                   script {
+                      def status = sh returnStatus: true, script:"grep -i $findSchema mta.yaml"
+                      println("findSchema $status")
+                      sh "exit ${status}" 
+                   } 
+                   echo "*** schema OK ***"
+              
+                   echo "*** find service i mta.yaml: $findService ***"
+                   script {
+                      def status = sh returnStatus: true, script:"grep -i $findService mta.yaml"
+                      println("findService $status")
+                      sh "exit ${status}" 
+                   } 
+                   echo "*** service OK ***"
+                                 
+                
+              
+                   echo "*** find role ***"
+                   script {
+                     
+                     def status = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' 'SHIP.' . "
+                      
+                     if (status==0)
+                     {
+                          println("En ship rolle er fundet")                
+                          def status1 = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' $findShipRole . "                     
+                          if (status1==0)
+                          {
+                             println("En ship rolle som passer med projektet er fundet")                            
+                             def status2 = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' 'SHIP.P_' . "                             
+                             if (status2==0)
+                             {
+                                 println("Projektet er en P-container")
+                                 sh "exit 0"
+                             }
+                             else
+                             {
+                                 println("ERROR: Kun P container må indeholde en SHIP rolle")
+                                 sh "exit 1"
+                             }
+                          }
+                          else
+                          {
+                             println("ERROR: Ingen ship rolle som passer med projektet er fundet")
+                             sh "exit 1"
+                          }
+                      }
+                      else
+                      {   
+                          if (firstCharInProject=='P')
+                          {
+                              println("ERROR: P container skal indeholde SHIP rolle")
+                              sh "exit 1"
+                          }
+                          else
+                          {  
+                              println("Ingen P container og derfor ingen SHIP rolle fundet")
+                              sh "exit 0"
+                          }  
+                      }
+                   } 
+                   echo "*** SHIP role OK ***"
+
+                   
+                   echo "****************************   slut test container   ***************************"               
+            }            
+        }
+        stage ("Build mtar") {
+           agent {
+             docker {
+                image "${artifactoryDocker}/xsa_mbt_builder:latest"
+                registryUrl "http://${artifactoryDocker}"
+                registryCredentialsId 'Artifactory'
+                reuseNode true
+                    }
+                 }
+            steps {
+                sh "npm config set @sap:registry https://artifactory.azure.dsb.dk/artifactory/api/npm/npm-sap/"
+                sh "mbt build -p=xsa --mtar dataART.${projectName}.${version}.mtar"
+                stash includes: "mta_archives/dataART.${projectName}.${version}.mtar", name: "mtarfile", useDefaultExcludes: false                
+                stash includes: "Infrastructure/**/**/*", name: "DeploymentFiles", useDefaultExcludes: false
+                
+                fileOperations([
+                          fileDeleteOperation(
+                              includes: 'dataART.xsa_ps1_deploy.*')])
+  
+                rtDownload(
+                    spec: '''{ "files": [
+                        {
+                            "pattern": "octopus-dataarten/dataART.xsa_ps1_deploy.*",
+                            "sortBy": ["created"],
+                            "sortOrder": "desc",
+                            "limit": 1
+                        }
+                    ] }''',
+                    serverId: "${artifactoryServerId}"
+                )
+                
+                sh "cp dataART.xsa_ps1_deploy.*.nupkg dataART.xsa_ps1_deploy.zip"
+                
+                unzip zipFile: "$WORKSPACE/dataART.xsa_ps1_deploy.zip", dir: "$WORKSPACE/"
+
+                stash includes: "*.ps1", name: "PSscripts", useDefaultExcludes: false
+            }
+            post {
+                  failure {
+                      archiveArtifacts allowEmptyArchive: true, artifacts: '/home/mta/.npm/_logs/*.*', followSymlinks: false 
+   
+                  }
+            }
+        }
+        
+        stage ("Publish Artifacts") {
+            agent {
+                docker {
+                    image "octopusdeploy/octo"
+                    args '--entrypoint=\'\''
+                }
+		    }
+                steps {
+                unstash "mtarfile"
+                unstash "PSscripts"
+                unstash "DeploymentFiles"
+                  
+                sh "rm -rf dataART.${projectName}.${version}"
+                
+                fileOperations([ 
+                        fileCopyOperation(
+                                flattenFiles: true, 
+                                includes: "mta_archives/dataART.${projectName}.${version}.mtar",
+                                targetLocation: "$WORKSPACE/dataART.${projectName}.${version}/"),
+                        fileCopyOperation(
+                                flattenFiles: true,
+                                includes: "*.ps1",
+                                targetLocation: "$WORKSPACE/dataART.${projectName}.${version}/Deployment/Scripts/")])
+
+                sh """ octo pack --id="dataART.${projectName}" --version="${packageVersion}" --basepath="$WORKSPACE/dataART.${projectName}.${version}" --outFolder=$WORKSPACE """
+                
+                rtUpload(
+                    spec: '''{ "files": [
+                        {
+                            "pattern": "dataART.${projectName}.${packageVersion}.nupkg",
+                            "target": "octopus-dataarten/"
+                        }
+                    ] }''',
+                    buildNumber: "${packageVersion}", buildName: "dataART.${projectName}",
+                    serverId: "${artifactoryServerId}"
+                )
+                rtPublishBuildInfo(buildNumber: "${packageVersion}", buildName: "dataART.${projectName}", serverId: "${artifactoryServerId}")
+            }
+        }  
+        stage ("Octopus sit") {
+            agent {
+                docker {
+                    image "octopusdeploy/octo"
+                    args '--entrypoint=\'\''
+                }
+		    }
+            options { skipDefaultCheckout true }
+            environment {
+                deployTo = "sit"
+                releaseversion = "${version}"
+                OCTOPUS_CLI_SERVER = "https://octopus.azure.dsb.dk"
+                OCTOPUS_CLI_API_KEY = credentials("Octopus-Api")
+                hostargs = "--project ${jobName} --version=${releaseversion} --space=Spaces-3"              
+            }
+            steps {
+                addBadge(text: "octopus", icon: "/userContent/octopus_16x16.png", id: "octopus", link: "${octopusURL}/app#/Spaces-3/projects/${jobName}/deployments/releases/${releaseversion}")
+                sh """
+                    octo create-release  $hostargs --defaultpackageversion=${packageVersion}
+                    octo deploy-release $hostargs --deployto=${deployTo} --waitfordeployment --deploymentTimeout=00:20:00
+                """
+            }
+        }        
+
+    }
+}
