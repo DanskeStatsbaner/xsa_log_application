@@ -1,45 +1,45 @@
 _schema-version: '2.0'
-ID: XSA_LOG_APPLICATIONS
-description: XSA_LOG_APPLICATIONS
+ID: XSA_LOG_APPLICATION
+description: XSA_LOG_APPLICATION
 version: 0.0.1
 
 modules:
- - name:  XSA_LOG_APPLICATIONS-DWF
+ - name:  XSA_LOG_APPLICATION-DWF
    type: dwf
 #   parameters:
-#      app-name: XSA_LOG_APPLICATIONS-DWF
+#      app-name: XSA_LOG_APPLICATION-DWF
    path: DWF
    requires:
-#      - name: XSA_LOG_APPLICATIONS-uaa
-      - name: XSA_LOG_APPLICATIONS-dws
+#      - name: XSA_LOG_APPLICATION-uaa
+      - name: XSA_LOG_APPLICATION-dws
    properties:
      memory: 256M
 
- - name: XSA_LOG_APPLICATIONS-Backend
+ - name: XSA_LOG_APPLICATION-Backend
    type: nodejs
 #   parameters:
-#      app-name: XSA_LOG_APPLICATIONS-Backend
+#      app-name: XSA_LOG_APPLICATION-Backend
    path: Backend
    requires:
-#      - name: XSA_LOG_APPLICATIONS-uaa
-      - name: XSA_LOG_APPLICATIONS-container
-      - name: XSA_LOG_APPLICATIONS-dws
+#      - name: XSA_LOG_APPLICATION-uaa
+      - name: XSA_LOG_APPLICATION-container
+      - name: XSA_LOG_APPLICATION-dws
    properties:
      memory: 512M
      API_END_POINT: "${xs-api-url}"
 #     SAP_JWT_TRUST_ACL: "[{\"clientid\":\"*\",\"identityzone\":\"*\"}]"
    provides:
-    - name:  XSA_LOG_APPLICATIONS-Backend
+    - name:  XSA_LOG_APPLICATION-Backend
       properties:
        service_url: ${default-url}
 
- - name: XSA_LOG_APPLICATIONS-Database
+ - name: XSA_LOG_APPLICATION-Database
    type: hdb
 #   parameters:
 #      app-name: XSA_LOG_APPLICATIONS-Database
    path: Database
    requires:
-    - name: XSA_LOG_APPLICATIONS-container
+    - name: XSA_LOG_APPLICATION-container
       properties:
         TARGET_CONTAINER: '~{hdi-container-name}'
    
@@ -61,13 +61,13 @@ modules:
      HDI_DEPLOY_OPTIONS: { "auto_undeploy": true }
 
 resources:
-# - name: XSA_LOG_APPLICATIONS-uaa
+# - name: XSA_LOG_APPLICATION-uaa
 #   type: com.sap.xs.uaa
 #   parameters:
-#     service-name: XSA_LOG_APPLICATIONS-uaa
+#     service-name: XSA_LOG_APPLICATION-uaa
 #     service-plan: space
 #     config:
-#         xsappname: XSA_LOG_APPLICATIONS
+#         xsappname: XSA_LOG_APPLICATION
 #         scopes:
 #          - name: $XSAPPNAME.TOE
 #            description: access for TOE
@@ -88,14 +88,14 @@ resources:
  - name: XSA_LOG_APPLICATION-dws
    properties:
       dwf-edw-client-name: ${service-name}
-#      dwf-edw-client-name: XSA_LOG_APPLICATIONS-dws
+#      dwf-edw-client-name: XSA_LOG_APPLICATION-dws
 #   parameters:
-#      service-name: XSA_LOG_APPLICATIONS-dws
+#      service-name: XSA_LOG_APPLICATION-dws
    type: com.sap.xs.dwf-edw-client
  - name: XSA_LOG_APPLICATION-container
    properties:
       hdi-container-name: ${service-name}
-#      hdi-container-name: XSA_LOG_APPLICATIONS-container
+#      hdi-container-name: XSA_LOG_APPLICATION-container
    type: com.sap.xs.hdi-container
    parameters:
      config:
