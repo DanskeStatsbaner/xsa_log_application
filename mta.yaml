@@ -28,10 +28,7 @@ modules:
      memory: 512M
      API_END_POINT: "${xs-api-url}"
 #     SAP_JWT_TRUST_ACL: "[{\"clientid\":\"*\",\"identityzone\":\"*\"}]"
-   provides:
-    - name:  XSA_LOG_APPLICATION-Backend
-      properties:
-       service_url: ${default-url}
+ 
 
  - name: XSA_LOG_APPLICATION-Database
    type: hdb
