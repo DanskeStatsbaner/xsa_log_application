@@ -85,21 +85,21 @@ resources:
 #             scope-references:
 #              - $XSAPPNAME.TOE
 
- - name: XSA_LOG_APPLICATIONS-dws
+ - name: XSA_LOG_APPLICATION-dws
    properties:
       dwf-edw-client-name: ${service-name}
 #      dwf-edw-client-name: XSA_LOG_APPLICATIONS-dws
 #   parameters:
 #      service-name: XSA_LOG_APPLICATIONS-dws
    type: com.sap.xs.dwf-edw-client
- - name: XSA_LOG_APPLICATIONS-container
+ - name: XSA_LOG_APPLICATION-container
    properties:
       hdi-container-name: ${service-name}
 #      hdi-container-name: XSA_LOG_APPLICATIONS-container
    type: com.sap.xs.hdi-container
    parameters:
      config:
-        schema: XSA_LOG_APPLICATIONS 
+        schema: XSA_LOG_APPLICATION
      service-keys:
      - name: dwf-monitor
 
