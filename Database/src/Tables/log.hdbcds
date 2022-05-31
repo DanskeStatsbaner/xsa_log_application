@@ -15,8 +15,8 @@ context log {
     };
 
     entity log_rules{
-        
-        key TASKCHAINID            	: String(1024);
+        key CONTAINER			: String(1024);
+        key TASKCHAINID         : String(1024);
         OVERRIDE_OK_AMOUNT  	: Integer;
         OVERRIDE_OK_SPAN    	: Integer;
         OVERRIDE_OK_NOTATION    : String(1);
