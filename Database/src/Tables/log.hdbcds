@@ -23,7 +23,8 @@ context log {
         OVERRIDE_ERROR_AMOUNT  	: Integer;
         OVERRIDE_ERROR_SPAN    	: Integer;
         OVERRIDE_ERROR_NOTATION : String(1);
-        COMMENT : String(1024);
+        RESPONSIBLE 			: String(2050);
+        COMMENT 				: String(2050);
             
     };
 
