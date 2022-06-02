@@ -15,7 +15,7 @@
 	},
 	"files": [],
 	"scripts": {
-		"start": "node node_modules/@sap/dwf-deploy/main.js"
+		"start": "node node_modules/@sap/dwf-deploy/main.js --auto-undeploy"
 	},
 	"engines": {
 		"node": "^12.0.0 || ^14.0.0"

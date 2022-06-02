@@ -24,7 +24,16 @@ context log {
         OVERRIDE_ERROR_SPAN    	: Integer;
         OVERRIDE_ERROR_NOTATION : String(1);
         RESPONSIBLE 			: String(2050);
+        WARNING_EMAILS			: String(5000);
+        WARNING_OPT_IN          : Boolean;
         COMMENT 				: String(2050);
+            
+    };
+    
+        entity warning_mails{
+        CONTAINER			: String(1024);
+        TASKCHAINID         : String(1024);
+    	WARNING_EMAILS		: String(5000);
             
     };
 
