@@ -25,7 +25,7 @@ context log {
         OVERRIDE_ERROR_NOTATION : String(1) default null;
         RESPONSIBLE 			: String(2050) default null;
         WARNING_EMAILS			: String(5000) default null;
-        WARNING_OPT_IN          : Boolean default null;
+        WARNING_OPT_IN          : Boolean default false;
         COMMENT 				: String(2050) default null;
             
     };
