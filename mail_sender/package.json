@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "@sap/xsenv": "^3",
+    "@sap/xsenv": "3.2.2",
     "@sap/xsjs": "^6",
     "sap-cf-mailer": "^0.0.5"
   },
