@@ -2,110 +2,70 @@ _schema-version: '2.0'
 ID: XSA_LOG_APPLICATION
 description: XSA_LOG_APPLICATION
 version: 0.0.1
-
 modules:
- - name:  XSA_LOG_APPLICATION-DWF
-   type: dwf
-#   parameters:
-#      app-name: XSA_LOG_APPLICATION-DWF
-   path: DWF
-   requires:
-#      - name: XSA_LOG_APPLICATION-uaa
+  - name: XSA_LOG_APPLICATION-DWF
+    type: dwf
+    path: DWF
+    requires:
       - name: XSA_LOG_APPLICATION-dws
-   properties:
-     memory: 256M
-
- - name: XSA_LOG_APPLICATION-Backend
-   type: nodejs
-#   parameters:
-#      app-name: XSA_LOG_APPLICATION-Backend
-   path: Backend
-   requires:
-#      - name: XSA_LOG_APPLICATION-uaa
+    properties:
+      memory: 256M
+  - name: XSA_LOG_APPLICATION-Backend
+    type: nodejs
+    path: Backend
+    requires:
       - name: XSA_LOG_APPLICATION-container
       - name: XSA_LOG_APPLICATION-dws
-   properties:
-     memory: 512M
-     API_END_POINT: "${xs-api-url}"
-#     SAP_JWT_TRUST_ACL: "[{\"clientid\":\"*\",\"identityzone\":\"*\"}]"
- 
-
- - name: XSA_LOG_APPLICATION-Database
-   type: hdb
-#   parameters:
-#      app-name: XSA_LOG_APPLICATIONS-Database
-   path: Database
-   requires:
-    - name: XSA_LOG_APPLICATION-container
-      properties:
-        TARGET_CONTAINER: '~{hdi-container-name}'
-   
-   
-    - name: XSA_KEY_VAULT
-      group: SERVICE_REPLACEMENTS
-
-      properties:
-        key: XSA_KEY_VAULT
-        service: ~{the-service-name}
-
-   
-   
-                          
-
-
-   properties:
-     memory: 256M
-     HDI_DEPLOY_OPTIONS: { "auto_undeploy": true }
-
+    properties:
+      memory: 512M
+      API_END_POINT: '${xs-api-url}'
+  - name: XSA_LOG_APPLICATION-Database
+    type: hdb
+    path: Database
+    requires:
+      - name: XSA_LOG_APPLICATION-container
+        properties:
+          TARGET_CONTAINER: '~{hdi-container-name}'
+      - name: XSA_KEY_VAULT
+        group: SERVICE_REPLACEMENTS
+        properties:
+          key: XSA_KEY_VAULT
+          service: '~{the-service-name}'
+    properties:
+      memory: 256M
+      HDI_DEPLOY_OPTIONS:
+        auto_undeploy: true
+  - name: mail_sender
+    type: nodejs
+    path: mail_sender
+    provides:
+      - name: mail_sender_api
+        properties:
+          url: '${default-url}'
+    requires:
+      - name: XSA_LOG_APPLICATION-Database
+      - name: XSA_LOG_APPLICATION-container
+    properties:
+      memory: 1024
+    parameters:
+      health-check-type: process
 resources:
-# - name: XSA_LOG_APPLICATION-uaa
-#   type: com.sap.xs.uaa
-#   parameters:
-#     service-name: XSA_LOG_APPLICATION-uaa
-#     service-plan: space
-#     config:
-#         xsappname: XSA_LOG_APPLICATION
-#         scopes:
-#          - name: $XSAPPNAME.TOE
-#            description: access for TOE
-#            grant-as-authority-to-apps:
-#             - dwf-toe
-#             - dwf-runtime
-#            granted-apps:
-#             - dwf-toe
-#             - dwf-runtime
-#         authorities:
-#          - $ACCEPT_GRANTED_AUTHORITIES
-#         role-templates:
-#           - name: User
-#             description: Access API
-#             scope-references:
-#              - $XSAPPNAME.TOE
-
- - name: XSA_LOG_APPLICATION-dws
-   properties:
-      dwf-edw-client-name: ${service-name}
-#      dwf-edw-client-name: XSA_LOG_APPLICATION-dws
-#   parameters:
-#      service-name: XSA_LOG_APPLICATION-dws
-   type: com.sap.xs.dwf-edw-client
- - name: XSA_LOG_APPLICATION-container
-   properties:
-      hdi-container-name: ${service-name}
-#      hdi-container-name: XSA_LOG_APPLICATION-container
-   type: com.sap.xs.hdi-container
-   parameters:
-     config:
+  - name: XSA_LOG_APPLICATION-dws
+    properties:
+      dwf-edw-client-name: '${service-name}'
+    type: com.sap.xs.dwf-edw-client
+  - name: XSA_LOG_APPLICATION-container
+    properties:
+      hdi-container-name: '${service-name}'
+    type: com.sap.xs.hdi-container
+    parameters:
+      config:
         schema: XSA_LOG_APPLICATION
-     service-keys:
-     - name: dwf-monitor
-
- - name: XSA_KEY_VAULT
-   parameters:
+      service-keys:
+        - name: dwf-monitor
+  - name: XSA_KEY_VAULT
+    parameters:
       service-name: XSA_KEY_VAULT-CONTAINER
-   properties:
-      the-service-name: ${service-name}
-   type: org.cloudfoundry.existing-service
-
-
-
+    properties:
+      the-service-name: '${service-name}'
+    type: org.cloudfoundry.existing-service

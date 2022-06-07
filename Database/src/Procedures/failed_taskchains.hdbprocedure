@@ -139,21 +139,22 @@ END IF;
                INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  "SCHEMA", "TASKCHAINID", REPLACE(REPLACE("WARNING_EMAILS",',',';'),':',';') FROM :warning_mails;
 
                
+               
 FOR k IN 1..RECORD_COUNT(:humio) DO 
-		INSTANCEID = :humio."INSTANCEID"[:k];
-		LOGID = :humio."LOGID"[:k];
-		STATUS = :humio."STATUS"[:k];
-		NAMESPACE = :humio."NAMESPACE"[:k];
-		TASKCHAINID = :humio."LOG_TASKCHAINID"[:k];
-		STARTIME = :humio."STARTTIME"[:k];
-		ENDTIME = :humio."ENDTIME"[:k];
-		FINISHED = :humio."FINISHED"[:k];
-		RUN_TIME = :humio."RUN_TIME"[:k];
-		DESCRIPTION = :humio."DESCRIPTION"[:k];
-		CONTAINER = :humio."SCHEMA"[:k];
-		RESPONSIBLE_NAME = :humio."RESPONSIBLE_NAME"[:k];
-		RESPONSIBLE_EMAIL = :humio."RESPONSIBLE_EMAIL"[:k];
-		RESPONSIBLE = :humio."RESPONSIBLE"[:k];
+		INSTANCEID = IFNULL(:humio."INSTANCEID"[:k],'NA');
+		LOGID = IFNULL(:humio."LOGID"[:k],-1);
+		STATUS = IFNULL(:humio."STATUS"[:k],'NA');
+		NAMESPACE = IFNULL(:humio."NAMESPACE"[:k],'NA');
+		TASKCHAINID = IFNULL(:humio."LOG_TASKCHAINID"[:k],'NA');
+		STARTIME = IFNULL(:humio."STARTTIME"[:k],'9999-01-01');
+		ENDTIME = IFNULL(:humio."ENDTIME"[:k],'9999-01-01');
+		FINISHED = IFNULL(:humio."FINISHED"[:k],'9999-01-01');
+		RUN_TIME = IFNULL(:humio."RUN_TIME"[:k],-1);
+		DESCRIPTION = IFNULL(:humio."DESCRIPTION"[:k],'NA');
+		CONTAINER = IFNULL(:humio."SCHEMA"[:k],'NA');
+		RESPONSIBLE_NAME = IFNULL(:humio."RESPONSIBLE_NAME"[:k],'NA');
+		RESPONSIBLE_EMAIL = IFNULL(:humio."RESPONSIBLE_EMAIL"[:k],'NA');
+		RESPONSIBLE = IFNULL(:humio."RESPONSIBLE"[:k],'NA');
 	
 		
 			CALL "DataWareHouse.Database.Synonyms::humio"(
