@@ -45,6 +45,7 @@ modules:
     requires:
       - name: XSA_LOG_APPLICATION-Database
       - name: XSA_LOG_APPLICATION-container
+      - name: hana.smtp
     properties:
       memory: 1024
     parameters:
@@ -69,3 +70,7 @@ resources:
     properties:
       the-service-name: '${service-name}'
     type: org.cloudfoundry.existing-service
+  - name: hana.smtp
+    type: org.cloudfoundry.existing-service
+    parameters:
+      service-name: hana.smtp

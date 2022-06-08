@@ -1,74 +1,65 @@
-/*eslint no-console: 0, no-unused-vars: 0*/
-"use strict";
-var util = require("util");
-var query;
-var RestApiUrl;
-var username;
-var passw;
-var auth;
-var config;
-var resp;
-var resptab;
-var maxdate;
+/*eslint no-console: 0, no-unused-vars: 0, no-undef:0*/
+/*eslint-env node, es6 */
 
-var xsjs = require("@sap/xsjs");
+"use strict";
 var xsenv = require("@sap/xsenv");
 var port = process.env.PORT || 3000;
-var axios = require("axios");
-var hdbext = require("@sap/hdbext");
-var async = require("async");
+var server = require("http").createServer();
+var express = require("express");
 
-var options = {
-	anonymous: true, // remove to authenticate calls
-	auditLog: {
-		logToConsole: true
-	}, // change to auditlog service for productive scenarios
-	redirectUrl: "/index.xsjs"
-};
+//logging
+var logging = require("@sap/logging");
+var appContext = logging.createAppContext();
 
-// configure HANA
-try {
-	options = Object.assign(options, xsenv.getServices({
-		hana: {
-			tag: "hana"
+//Initialize Express App for XS UAA and HDBEXT Middleware
+var app = express();
+
+app.use(logging.middleware({ appContext: appContext, logNetwork: true }));
+
+app.get("/", (req, res) => {
+	let options = {};
+	//Add SMTP
+	try {
+		options = Object.assign(options, xsenv.getServices({
+			mail: {
+				"name": "hana.smtp"
+			}
+		}));
+	} catch (err) {
+		console.log("[WARN]", err.message);
+	}
+	const nodemailer = require("nodemailer");
+	// create reusable transporter object using the default SMTP transport
+	console.log(JSON.stringify(options.mail));
+	let transporter = nodemailer.createTransport(options.mail);
+
+	// setup email data with unicode symbols
+	let mailOptions = {
+		from: "\"Nic\" <NP0.do.not.reply@dsb.dk", // sender address
+		to: "Nic <nichol@dsb.dk>", // list of receivers
+		subject: "Mail Test from Pure Node.js using NodeMailer", // Subject line
+		text: "The body of the mail from Pure Node.js using NodeMailer" // plain text body
+			//        html: '<b>Hello world?</b>' // html body
+	};
+console.log(mailOptions);
+console.log(options); 
+	// send mail with defined transport object
+	transporter.sendMail(mailOptions, (error, info) => {
+		if (error) {
+			return console.log(error);
 		}
-	}));
-} catch (err) {
-	console.log("configure HANA: [WARN]", err.message);
-}
+		console.log("Message sent: %s", info.messageId);
+		// Preview only available when sending through an Ethereal account
+		console.log("Preview URL: %s", nodemailer.getTestMessageUrl(info));
+		// Message sent: <b658f8ca-6296-ccf4-8306-87d57a0b4321@example.com>
+		// Preview URL: https://ethereal.email/message/WaQKMgKddxQDoou...
+		var output = "Preview URL: " + nodemailer.getTestMessageUrl(info);
+		res.type("text/html").status(200).send(output);
+	});
+});
 
-var hanaConfig = {
-	host: options.hana.host,
-	port: options.hana.port,
-	user: options.hana.user,
-	password: options.hana.password
-};
-
-function sendUserEmail() {
-    try {
-      	var from = "test@test.com";
-        var to = $.request.parameters.get("email");
-        var subject = $.request.parameters.get("subject");
-        var message = $.request.parameters.get("message");
-        
-        var mail = new $.net.Mail({
-        	    sender: {address: from},
-        	    to: [{ address: to}],
-        	    subject: "Subject : "+subject+" ",
-        	    subjectEncoding:"UTF-8",
-        	    parts: [ new $.net.Mail.Part({
-        	        type: $.net.Mail.Part.TYPE_TEXT,
-        	        contentType: "text/plain", 
-        	        text: message,
-        	        encoding:"UTF-8"
-        	    })]
-        });
-        var returnValue = mail.send();
-        var response = "MessageId = " + returnValue.messageId + ", final reply = " + returnValue.finalReply;
-        
-        $.response.setBody(JSON.stringify(response));
-    }  
-    catch (e) {  
-        Dataset.response = e.message + " ";
-    }  
-}
+//Start the Server 
+server.on("request", app);
+server.listen(port, function() {
+	console.info(`HTTP Server: ${server.address().port}`);
+});
