@@ -3,40 +3,39 @@ namespace DataWareHouse.Database.Tables;
 context log {
 
     /*@@layout{"layoutInfo":{"x":-369,"y":-129.5}}*/
-  
+
 
     entity procedure_run {
-        
-        key NAME            	: String(1024);
-        key RUNTIME_START   	: UTCTimestamp not null;
-        key RUNTIME_END     	: UTCTimestamp not null;
-        COMMENT : String(1024);
-            
+        key NAME          : String(1024);
+        key RUNTIME_START : UTCTimestamp not null;
+        key RUNTIME_END   : UTCTimestamp not null;
+            COMMENT       : String(1024);
     };
 
-    entity log_rules{
-        key CONTAINER			: String(1024);
-        key TASKCHAINID         : String(1024);
-        OVERRIDE_OK_AMOUNT  	: Integer default null;
-        OVERRIDE_OK_SPAN    	: Integer default null;
-        OVERRIDE_OK_NOTATION    : String(1) default null;
-        OVERRIDE_ERROR_AMOUNT  	: Integer default null;
-        OVERRIDE_ERROR_SPAN    	: Integer default null;
-        OVERRIDE_ERROR_NOTATION : String(1) default null;
-        RESPONSIBLE 			: String(2050) default null;
-        WARNING_EMAILS			: String(5000) default null;
-        WARNING_OPT_IN          : Boolean default false;
-        COMMENT 				: String(2050) default null;
-            
-    };
-    
-        entity warning_mails{
-        CONTAINER			: String(1024);
-        TASKCHAINID         : String(1024);
-    	WARNING_EMAILS		: String(5000);
-            
+    entity log_rules {
+    	key ID              		: Integer generated always as identity(start with 1 increment by 1);
+        key CONTAINER               : String(1024);
+        key TASKCHAINID             : String(1024);
+            OVERRIDE_OK_AMOUNT      : Integer      default null;
+            OVERRIDE_OK_SPAN        : Integer      default null;
+            OVERRIDE_OK_NOTATION    : String(1)    default null;
+            OVERRIDE_ERROR_AMOUNT   : Integer      default null;
+            OVERRIDE_ERROR_SPAN     : Integer      default null;
+            OVERRIDE_ERROR_NOTATION : String(1)    default null;
+            RESPONSIBLE             : String(2050) default null;
+            MAIL_GROUP_ID      		: Integer default null;
+            WARNING_OPT_IN          : Boolean      default false;
+            COMMENT                 : String(2050) default null;
     };
 
-   
-    
+    entity warning_mails {
+        LOG_RULES_ID  : Integer;
+    	MAIL_GROUP_ID : Integer;
+    };
+
+    entity mail_group {
+        key ID             : Integer generated always as identity(start with 1 increment by 1);
+        key GROUP_NAME : String(500);
+            WARNING_EMAILS : String(5000);
+    };
 };

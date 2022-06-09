@@ -41,6 +41,7 @@ SELECT DISTINCT
 );
  
 override = SELECT 
+ID,
 CONTAINER,
 TASKCHAINID,
 OVERRIDE_OK_AMOUNT,
@@ -78,7 +79,7 @@ ELSE 'FALSE'
 END AS default_override,
 RESPONSIBLE,
 WARNING_OPT_IN,
-WARNING_EMAILS
+MAIL_GROUP_ID
 FROM "DataWareHouse.Database.Tables::log.log_rules"
 ;
 
@@ -122,7 +123,7 @@ END IF;
               errors = SELECT *,
                ROW_NUMBER() OVER (PARTITION BY a.LOG_TASKCHAINID ORDER BY a.STARTTIME DESC) as ROWNUMBER
                FROM :chains a
-               JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID)
+               JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
             	WHERE 
             	(default_override= 'FALSE' AND STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN AND "STATUS" IN ('ERROR','ABORTED'))
                 OR
@@ -134,9 +135,11 @@ END IF;
                 
                humio = select * from :errors where ROWNUMBER = 1;
                
-               warning_mails = select * from :humio where  "WARNING_OPT_IN" = TRUE;
+               warning_mails = select * from :humio a
+                              where  "WARNING_OPT_IN" = TRUE
+               ;
                
-               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  "SCHEMA", "TASKCHAINID", REPLACE(REPLACE("WARNING_EMAILS",',',';'),':',';') FROM :warning_mails;
+               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  ID, MAIL_GROUP_ID FROM :warning_mails;
 
                
                
@@ -148,7 +151,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 		TASKCHAINID = IFNULL(:humio."LOG_TASKCHAINID"[:k],'NA');
 		STARTIME = IFNULL(:humio."STARTTIME"[:k],'9999-01-01');
 		ENDTIME = IFNULL(:humio."ENDTIME"[:k],'9999-01-01');
-		FINISHED = IFNULL(:humio."FINISHED"[:k],'9999-01-01');
+		FINISHED = IFNULL(:humio."FINISHED"[:k],-1);
 		RUN_TIME = IFNULL(:humio."RUN_TIME"[:k],-1);
 		DESCRIPTION = IFNULL(:humio."DESCRIPTION"[:k],'NA');
 		CONTAINER = IFNULL(:humio."SCHEMA"[:k],'NA');
@@ -157,7 +160,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 		RESPONSIBLE = IFNULL(:humio."RESPONSIBLE"[:k],'NA');
 	
 		
-			CALL "DataWareHouse.Database.Synonyms::humio"(
+	/*		CALL "DataWareHouse.Database.Synonyms::humio"(
     MESSAGE => 'Native HANA system log',
     LOG_LEVEL => 'WARNING',
     HOST => 'HANA',
@@ -168,7 +171,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
        ||'"',
     JWT => :ingesttoken,
     EXCEPTION_ON_ERROR => 1
-);
+);*/
 END FOR;
 
 END FOR;
