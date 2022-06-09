@@ -109,8 +109,9 @@ client.exec(query,
 );}
 
 //Start the Server 
-getMail();
-server.on("request", app);
-server.listen(port, function() {
-	console.info(`HTTP Server: ${server.address().port}`);
-});
+setInterval(function () {
+	var date = new Date();
+	if (date.getMinutes() % 5 === 0) {
+		getMail();
+	}
+}, 60000);
