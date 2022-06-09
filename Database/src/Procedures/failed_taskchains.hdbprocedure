@@ -20,7 +20,7 @@ DECLARE ingesttoken NVARCHAR(2500);
 FIRST_RUN = '2022-05-23';
 RUNTIME_START = CURRENT_TIMESTAMP;
 HANA_LOG_NAME ='failed_taskchains';
-SELECT IFNULL(MAX("RUNTIME_START"),'2022-05-23 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run";
+SELECT IFNULL(MAX("RUNTIME_START"),'2022-06-08 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run";
 
 
 SELECT DISTINCT
@@ -160,7 +160,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 		RESPONSIBLE = IFNULL(:humio."RESPONSIBLE"[:k],'NA');
 	
 		
-	/*		CALL "DataWareHouse.Database.Synonyms::humio"(
+	CALL "DataWareHouse.Database.Synonyms::humio"(
     MESSAGE => 'Native HANA system log',
     LOG_LEVEL => 'WARNING',
     HOST => 'HANA',
@@ -171,7 +171,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
        ||'"',
     JWT => :ingesttoken,
     EXCEPTION_ON_ERROR => 1
-);*/
+);
 END FOR;
 
 END FOR;
