@@ -106,8 +106,8 @@ client.exec(query,
 	
 		sendMail(row.CONTAINER, row.TASKCHAINID, row.EMAIL_ADDRESS);
 	});
-		//query = `delete from ${options.hana.schema}."DataWareHouse.Database.Tables::log.warning_mails"`;
-		//client.exec(query);
+		query = `delete from ${options.hana.schema}."DataWareHouse.Database.Tables::log.warning_mails"`;
+		client.exec(query);
 	});
 }
 
