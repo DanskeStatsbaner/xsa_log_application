@@ -45,6 +45,8 @@ var hanaConfig = {
 	
 	
 	let transporter = nodemailer.createTransport(options.mail);
+	
+
 
 function sendMail(container, taskchain, mail){
 	// setup email data with unicode symbols
@@ -78,40 +80,45 @@ hdbext.createConnection(hanaConfig, function (error, client) {
 			console.log("Error trying to connect to HANA database ..." + error);
 			return;
 		}
+		
+		
 var query;	
 query =  `
 SELECT 
-DISTINCT
-c.ID AS ID,
 STRING_AGG(CONTAINER,','ORDER BY CONTAINER DESC) AS CONTAINER, 
 STRING_AGG(TASKCHAINID,','ORDER BY TASKCHAINID DESC) AS TASKCHAINID, 
-WARNING_EMAILS
+EMAIL_ADDRESS
 FROM "${options.hana.schema}"."DataWareHouse.Database.Tables::log.warning_mails" a
 JOIN "${options.hana.schema}"."DataWareHouse.Database.Tables::log.log_rules" b ON (a.LOG_RULES_ID = b.ID)
-JOIN "${options.hana.schema}"."DataWareHouse.Database.Tables::log.mail_group" c ON (a.MAIL_GROUP_ID = c.ID)
-group by c.ID, WARNING_EMAILS
-	`;
+JOIN "${options.hana.schema}"."DataWareHouse.Database.Tables::log.mail_list" d ON (a.MAIL_GROUP_ID = d.GROUP_ID)
+JOIN "${options.hana.schema}"."DataWareHouse.Database.Tables::log.mail_individual" e ON (d.INDIVIDUAL_ID = e.ID)
+group by 
+EMAIL_ADDRESS`;
 	
+
+
 client.exec(query,
 	function (err, rs) {
 		if (err) {
 			return console.log("Error select : " + err.message);
 		}
 	rs.forEach(row => {
-		
-			sendMail(row.CONTAINER, row.TASKCHAINID, row.WARNING_EMAILS);
+	
+		sendMail(row.CONTAINER, row.TASKCHAINID, row.EMAIL_ADDRESS);
 	});
-		query = `delete from ${options.hana.schema}."DataWareHouse.Database.Tables::log.warning_mails"`;
-		client.exec(query);
+		//query = `delete from ${options.hana.schema}."DataWareHouse.Database.Tables::log.warning_mails"`;
+		//client.exec(query);
 	});
 }
 
 );}
 
+
+
 //Start the Server 
 setInterval(function () {
 	var date = new Date();
-	if (date.getMinutes() % 5 === 0) {
+	
 		getMail();
-	}
-}, 60000);
+	
+}, 60000*5);

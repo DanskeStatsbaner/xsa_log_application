@@ -1,0 +1,15 @@
+PROCEDURE "DataWareHouse.Database.Procedures::create_mailgroup"(
+IN
+group_name NVARCHAR(500)
+)
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN SEQUENTIAL EXECUTION
+
+INSERT INTO "DataWareHouse.Database.Tables::log.mail_group" VALUES(
+:group_name
+);
+
+
+END
