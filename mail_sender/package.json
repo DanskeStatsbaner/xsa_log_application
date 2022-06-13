@@ -1,29 +1,28 @@
 {
   "dependencies": {
-    "@sap/xsenv": "3.2.2",
+  	"@sap/xsenv": "3.2.2",
     "@sap/xsjs": "^6",
     "sap-cf-mailer": "latest",
 	"@sap/hdbext": "latest",
 	"@sap/hana-client": "latest",
 	"express": "latest",
-	"async": "latest",
-	"axios": "latest",
-	"xml2js": "latest",
 	"http": "latest", 
 	"mailer": "latest",
 	"@sap/logging": "latest",
 	"nodemailer": "latest"
-  },
+  	  },
   "description": "my description",
   "devDependencies": {
-    "@sap/xsjs-test": "^3"
+    "jest": "^23.6.0",
+    "jest-junit": "^5.2.0"
   },
   "files": [],
   "main": "server.js",
   "name": "mail_sender",
   "scripts": {
-    "start": "node server.js",
-    "test": "node testrun.js"
+    "test": "node node_modules/jest/bin/jest --config jest.json",
+    "test-coverage": "node node_modules/jest/bin/jest --coverage --config jest.json",
+    "start": "node server.js"
   },
   "engines": {
     "node": "14.x"
