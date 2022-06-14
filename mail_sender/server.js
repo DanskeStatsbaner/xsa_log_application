@@ -5,15 +5,7 @@
 var xsenv = require("@sap/xsenv");
 var port = process.env.PORT || 3000;
 var server = require("http").createServer();
-var express = require("express");
 var hdbext = require("@sap/hdbext");
-
-//logging
-var logging = require("@sap/logging");
-var appContext = logging.createAppContext();
-
-//Initialize Express App for XS UAA and HDBEXT Middleware
-var app = express();
 
 
 	let options = {};

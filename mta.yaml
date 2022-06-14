@@ -46,6 +46,8 @@ modules:
       - name: hana.smtp
       - name: XSA_LOG_APPLICATION-container
       - name: XSA_LOG_APPLICATION-Database
+    parameters:
+      health-check-type: process
 resources:
   - name: XSA_LOG_APPLICATION-dws
     properties:
