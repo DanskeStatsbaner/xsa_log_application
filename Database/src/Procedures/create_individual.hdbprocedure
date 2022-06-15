@@ -8,6 +8,6 @@ SQL SECURITY INVOKER
 AS
 BEGIN SEQUENTIAL EXECUTION
 
-INSERT INTO "DataWareHouse.Database.Tables::log.mail_individual" VALUES(username,email_address);
+INSERT INTO "DataWareHouse.Database.Tables::log.mail_individual" VALUES(:username,:email_address);
 
 END

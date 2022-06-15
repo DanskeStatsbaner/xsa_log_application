@@ -1,0 +1,24 @@
+PROCEDURE "DataWareHouse.Database.Procedures::delete_mapping"(
+IN
+mailgroup_id INTEGER,
+individual_id INTEGER ARRAY
+)
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN SEQUENTIAL EXECUTION
+
+DECLARE k,g_id, i_id Integer;
+SELECT "ID"  INTO g_id  FROM "DataWareHouse.Database.Tables::log.mail_group" where "ID" = :mailgroup_id;
+
+IF IFNULL(g_id,-1) = :mailgroup_id THEN
+FOR k IN 1..CARDINALITY(:individual_id)
+DO
+SELECT "ID" into i_id FROM "DataWareHouse.Database.Tables::log.mail_individual" where "ID" = :individual_id[k];
+IF IFNULL(i_id,-1) = :individual_id[k] THEN
+DELETE FROM "DataWareHouse.Database.Tables::log.mail_list"  WHERE "GROUP_ID" = :g_id and "INDIVIDUAL_ID" = :i_id;
+END IF;
+END FOR;
+END IF;
+
+END

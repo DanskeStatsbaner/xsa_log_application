@@ -22,7 +22,7 @@ context log {
             OVERRIDE_ERROR_AMOUNT   : Integer      default null;
             OVERRIDE_ERROR_SPAN     : Integer      default null;
             OVERRIDE_ERROR_NOTATION : String(1)    default null;
-            RESPONSIBLE             : String(2050) default null;
+            RESPONSIBLE             : String(2050) not null;
             MAIL_GROUP_ID           : Integer      default null;
             WARNING_OPT_IN          : Boolean      default false;
             COMMENT                 : String(2050) default null;
