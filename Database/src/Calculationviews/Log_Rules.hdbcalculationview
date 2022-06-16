@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::Log_Rules" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="Log_Rules"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Tables::log.log_rules">
+    <resourceUri>DataWareHouse.Database.Tables::log.log_rules</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews/>
+<logicalModel id="DataWareHouse.Database.Tables::log.log_rules">
+  <attributes>
+    <attribute id="ID" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ID"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="ID"/>
+    </attribute>
+    <attribute id="CONTAINER" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CONTAINER"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="CONTAINER"/>
+    </attribute>
+    <attribute id="TASKCHAINID" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="TASKCHAINID"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="TASKCHAINID"/>
+    </attribute>
+    <attribute id="OVERRIDE_OK_AMOUNT" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_OK_AMOUNT"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_OK_AMOUNT"/>
+    </attribute>
+    <attribute id="OVERRIDE_OK_SPAN" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_OK_SPAN"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_OK_SPAN"/>
+    </attribute>
+    <attribute id="OVERRIDE_OK_NOTATION" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_OK_NOTATION"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_OK_NOTATION"/>
+    </attribute>
+    <attribute id="OVERRIDE_ERROR_AMOUNT" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_ERROR_AMOUNT"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_ERROR_AMOUNT"/>
+    </attribute>
+    <attribute id="OVERRIDE_ERROR_SPAN" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_ERROR_SPAN"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_ERROR_SPAN"/>
+    </attribute>
+    <attribute id="OVERRIDE_ERROR_NOTATION" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="OVERRIDE_ERROR_NOTATION"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="OVERRIDE_ERROR_NOTATION"/>
+    </attribute>
+    <attribute id="RESPONSIBLE" order="10" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="RESPONSIBLE"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="RESPONSIBLE"/>
+    </attribute>
+    <attribute id="MAIL_GROUP_ID" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="MAIL_GROUP_ID"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="MAIL_GROUP_ID"/>
+    </attribute>
+    <attribute id="WARNING_OPT_IN" order="12" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="WARNING_OPT_IN"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="WARNING_OPT_IN"/>
+    </attribute>
+    <attribute id="COMMENT" order="13" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="COMMENT"/>
+      <keyMapping columnObjectName="log.log_rules" columnName="COMMENT"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

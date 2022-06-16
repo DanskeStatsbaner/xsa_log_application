@@ -1,0 +1,12 @@
+{
+	"role": {
+		"name": "SHIP.P_LDAP",
+		"schema_privileges": [{
+			"privileges": [	
+				"SELECT",
+				"EXECUTE",
+				"CREATE TEMPORARY TABLE",
+				"SELECT CDS METADATA"]
+		}]
+	}
+}
