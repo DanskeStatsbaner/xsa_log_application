@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::taskchains" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="taskchains"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Views::taskchains">
+    <resourceUri>DataWareHouse.Database.Views::taskchains</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews/>
+<logicalModel id="DataWareHouse.Database.Views::taskchains">
+  <attributes>
+    <attribute id="INSTANCEID" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="INSTANCEID"/>
+      <keyMapping columnObjectName="taskchains" columnName="INSTANCEID"/>
+    </attribute>
+    <attribute id="STATUS" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="STATUS"/>
+      <keyMapping columnObjectName="taskchains" columnName="STATUS"/>
+    </attribute>
+    <attribute id="NAMESPACE" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="NAMESPACE"/>
+      <keyMapping columnObjectName="taskchains" columnName="NAMESPACE"/>
+    </attribute>
+    <attribute id="LOG_TASKCHAINID" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="LOG_TASKCHAINID"/>
+      <keyMapping columnObjectName="taskchains" columnName="LOG_TASKCHAINID"/>
+    </attribute>
+    <attribute id="STARTTIME" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="STARTTIME"/>
+      <keyMapping columnObjectName="taskchains" columnName="STARTTIME"/>
+    </attribute>
+    <attribute id="ENDTIME" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ENDTIME"/>
+      <keyMapping columnObjectName="taskchains" columnName="ENDTIME"/>
+    </attribute>
+    <attribute id="FINISHED" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="FINISHED"/>
+      <keyMapping columnObjectName="taskchains" columnName="FINISHED"/>
+    </attribute>
+    <attribute id="SCHEMA" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SCHEMA"/>
+      <keyMapping columnObjectName="taskchains" columnName="SCHEMA"/>
+    </attribute>
+    <attribute id="RUN_TIME" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="RUN_TIME"/>
+      <keyMapping columnObjectName="taskchains" columnName="RUN_TIME"/>
+    </attribute>
+    <attribute id="DESCRIPTION" order="10" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DESCRIPTION"/>
+      <keyMapping columnObjectName="taskchains" columnName="DESCRIPTION"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

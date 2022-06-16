@@ -1,0 +1,35 @@
+ view  "DataWareHouse.Database.Views::taskchains"  as
+ 
+ WITH datab
+AS
+(SELECT DISTINCT
+	CASE 
+		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
+		WHEN "SYSTEM_ID" = 'NPT' THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
+		END AS "Environment" 
+		FROM "DataWareHouse.Database.VirtualTables::M_DATABASE"),
+		seconds AS (
+		SELECT	SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP) AS UTC_DIF FROM "DataWareHouse.Database.VirtualTables::M_DATABASE"
+		)
+
+  SELECT
+  Log.INSTANCEID AS INSTANCEID,
+                    --Log.LOGID AS LOGID,
+                    Log.STATUS AS STATUS,
+                    Log.NAMESPACE AS NAMESPACE,
+                    Log.TASKCHAINID AS LOG_TASKCHAINID,
+                    ADD_SECONDS(Log.STARTTIME, (select UTC_DIF FROM seconds)) AS STARTTIME,
+                    ADD_SECONDS(Log.ENDTIME, (select UTC_DIF FROM seconds)) AS ENDTIME,
+                    Log.FINISHED AS FINISHED,
+                    REPLACE(UPPER(SUBSTR_REGEXPR('(?<=https://orgname-'|| (Select LOWER("Environment") from datab) ||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI)),'-','_')  AS "SCHEMA",
+                  --  SUBSTR_REGEXPR('(?<="name":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_NAME",
+                   -- SUBSTR_REGEXPR('(?<="email":")(.*?)(?=")'IN  TaskChainHeader.RESPONSIBLE )  AS "RESPONSIBLE_EMAIL",
+                    Log.RUN_TIME AS RUN_TIME,
+                    Log.DESCRIPTION AS DESCRIPTION
+                FROM "DataWareHouse.Database.VirtualTables::Log" Log
+                JOIN "DataWareHouse.Database.VirtualTables::TaskchainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
+                AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID AND TaskChainHeader.VALIDTO IS NULL
+                JOIN "DataWareHouse.Database.VirtualTables::TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
+               
+             
