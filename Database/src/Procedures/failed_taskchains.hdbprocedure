@@ -115,8 +115,6 @@ END IF;
                 JOIN "DataWareHouse.Database.VirtualTables::TaskchainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
                 AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID AND TaskChainHeader.VALIDTO IS NULL
                 JOIN "DataWareHouse.Database.VirtualTables::TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
-                --WHERE ADD_SECONDS(Log.STARTTIME, :seconds_Dif) > LAST_RUN 
-                --AND 
                 WHERE UPPER(Log.TASKCHAINID) = :TASKCHAINID  AND  UPPER(SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI)) = :CONTAINER
               ;
             
@@ -127,14 +125,14 @@ END IF;
             FROM :chains a
             JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
             WHERE 
-            default_override ='TRUE' AND STARTTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)AND CURRENT_TIMESTAMP AND "STATUS" = 'OK'
+            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)AND CURRENT_TIMESTAMP AND "STATUS" = 'OK'
             ;
             
              SELECT COUNT(*) INTO ERR_AMOUNT
             FROM :chains a
             JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
             WHERE 
-            default_override ='TRUE' AND STARTTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)AND CURRENT_TIMESTAMP AND "STATUS" IN ('ABORTED','ERROR')
+            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)AND CURRENT_TIMESTAMP AND "STATUS" IN ('ABORTED','ERROR')
             ;
            
                 
@@ -145,7 +143,7 @@ END IF;
                FROM :chains a
                JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
             	WHERE 
-            	(STARTTIME > :LAST_RUN AND STARTTIME >:FIRST_RUN AND "STATUS" IN ('ERROR','ABORTED'))
+            	(ENDTIME > :LAST_RUN AND ENDTIME >:FIRST_RUN AND "STATUS" IN ('ERROR','ABORTED'))
             	AND 
             	default_override = 'FALSE' 
             		OR (default_override='TRUE' 
