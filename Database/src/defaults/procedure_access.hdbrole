@@ -37,6 +37,11 @@
 			"name": "DataWareHouse.Database.Procedures::delete_mapping",
 			"type": "PROCEDURE",
 			"privileges": ["EXECUTE"]
+		},
+			{
+			"name": "DataWareHouse.Database.Procedures::create_mailgroup",
+			"type": "FUNCTION",
+			"privileges": ["EXECUTE"]
 		}
 		]
 	}
