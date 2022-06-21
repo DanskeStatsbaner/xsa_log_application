@@ -1,0 +1,16 @@
+PROCEDURE "DataWareHouse.Database.Procedures::delete_logrule"(
+IN
+ID INTEGER
+
+)
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN SEQUENTIAL EXECUTION
+
+DELETE FROM "DataWareHouse.Database.Tables::log.log_rules"
+WHERE ID = :ID;
+
+
+
+END

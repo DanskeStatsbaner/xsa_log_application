@@ -1,0 +1,43 @@
+{
+	"role": {
+		"name": "SHIP.P_MONITOR",
+		"object_privileges": [{
+			"name": "DataWareHouse.Database.Procedures::create_individual",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+		{	"name": "DataWareHouse.Database.Procedures::update_individual",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+		{	"name": "DataWareHouse.Database.Procedures::create_logrule",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+		{	"name": "DataWareHouse.Database.Procedures::update_logrule",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+		{
+			"name": "DataWareHouse.Database.Procedures::delete_logrule",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+			{
+			"name": "DataWareHouse.Database.Procedures::create_mailgroup",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+			{
+			"name": "DataWareHouse.Database.Procedures::create_mapping",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		},
+			{
+			"name": "DataWareHouse.Database.Procedures::delete_mapping",
+			"type": "PROCEDURE",
+			"privileges": ["EXECUTE"]
+		}
+		]
+	}
+}
