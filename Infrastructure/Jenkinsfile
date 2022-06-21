@@ -86,53 +86,7 @@ pipeline {
                                  
                 
               
-                   echo "*** find role ***"
-                   script {
-                     
-                     def status = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' 'SHIP.' . "
-                      
-                     if (status==0)
-                     {
-                          println("En ship rolle er fundet")                
-                          def status1 = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' $findShipRole . "                     
-                          if (status1==0)
-                          {
-                             println("En ship rolle som passer med projektet er fundet")                            
-                             def status2 = sh returnStatus: true, script:"grep -ir --include '*.hdbrole' 'SHIP.P_' . "                             
-                             if (status2==0)
-                             {
-                                 println("Projektet er en P-container")
-                                 sh "exit 0"
-                             }
-                             else
-                             {
-                                 println("ERROR: Kun P container må indeholde en SHIP rolle")
-                                 sh "exit 1"
-                             }
-                          }
-                          else
-                          {
-                             println("ERROR: Ingen ship rolle som passer med projektet er fundet")
-                             sh "exit 1"
-                          }
-                      }
-                      else
-                      {   
-                          if (firstCharInProject=='P')
-                          {
-                              println("ERROR: P container skal indeholde SHIP rolle")
-                              sh "exit 1"
-                          }
-                          else
-                          {  
-                              println("Ingen P container og derfor ingen SHIP rolle fundet")
-                              sh "exit 0"
-                          }  
-                      }
-                   } 
-                   echo "*** SHIP role OK ***"
-
-                   
+                 
                    echo "****************************   slut test container   ***************************"               
             }            
         }
