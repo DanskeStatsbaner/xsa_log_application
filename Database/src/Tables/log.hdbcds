@@ -14,8 +14,8 @@ context log {
 
     entity log_rules {
             ID                      : Integer generated always as identity(start with 1 increment by 1);
-        key CONTAINER               : String(1024);
-        key TASKCHAINID             : String(1024);
+        key CONTAINER               : String(1024) not null;
+        key TASKCHAINID             : String(1024) not null;
             OVERRIDE_OK_AMOUNT      : Integer      default null;
             OVERRIDE_OK_SPAN        : Integer      default null;
             OVERRIDE_OK_NOTATION    : String(1)    default null;
@@ -35,17 +35,17 @@ context log {
 
     entity mail_group {
             ID         : Integer generated always as identity(start with 1 increment by 1);
-        key GROUP_NAME : String(500);
+        key GROUP_NAME : String(500) not null;
     };
 
     entity mail_individual {
             ID            : Integer generated always as identity(start with 1 increment by 1);
-        key USERNAME      : String(500);
-            EMAIL_ADDRESS : String(500);
+        key USERNAME      : String(500) not null;
+            EMAIL_ADDRESS : String(500) not null;
     };
 
     entity mail_list {
-        key INDIVIDUAL_ID : Integer;
-        key GROUP_ID      : Integer;
+        key INDIVIDUAL_ID : Integer not null;
+        key GROUP_ID      : Integer not null;
     };
 };
