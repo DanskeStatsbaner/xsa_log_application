@@ -39,9 +39,24 @@
 			"privileges": ["EXECUTE"]
 		},
 			{
-			"name": "DataWareHouse.Database.Procedures::create_mailgroup",
-			"type": "FUNCTION",
-			"privileges": ["EXECUTE"]
+			"name": "DataWareHouse.Database.Tables::log.mail_group",
+			"type": "TABLE",
+			"privileges": ["SELECT","INSERT"]
+		},
+			{
+			"name": "DataWareHouse.Database.Tables::log.log_rules",
+			"type": "TABLE",
+			"privileges": ["SELECT","INSERT","UPDATE","DELETE"]
+		},
+				{
+			"name": "DataWareHouse.Database.Tables::log.mail_individual",
+			"type": "TABLE",
+			"privileges": ["SELECT","INSERT"]
+		},
+			{
+			"name": "DataWareHouse.Database.Tables::log.mail_list",
+			"type": "TABLE",
+			"privileges": ["SELECT","INSERT","DELETE"]
 		}
 		]
 	}
