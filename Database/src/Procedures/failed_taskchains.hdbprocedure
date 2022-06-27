@@ -66,7 +66,7 @@ WHEN
 	AND UPPER(OVERRIDE_OK_NOTATION) IN('D','H','M','S')  
 	AND OVERRIDE_OK_SPAN IS NOT NULL 
 	AND OVERRIDE_OK_SPAN > 0 
-	THEN 'OVERRIDE_OK'
+	THEN 'TRUE'
 WHEN  
 	OVERRIDE_ERROR_AMOUNT IS NOT NULL 
 	AND OVERRIDE_ERROR_AMOUNT > 0 
@@ -74,7 +74,7 @@ WHEN
 	AND OVERRIDE_ERROR_SPAN > 0 
 	AND OVERRIDE_ERROR_NOTATION IS NOT NULL 
 	AND UPPER(OVERRIDE_ERROR_NOTATION) IN('D','H','M','S') 
-	THEN 'OVERRIDE_ERROR'
+	THEN 'TRUE'
 ELSE 'FALSE'
 END AS default_override,
 RESPONSIBLE,
@@ -89,11 +89,11 @@ CONTAINER = REPLACE(UPPER(:override."CONTAINER"[:k]),'_','-');
 TASKCHAINID = UPPER(:override."TASKCHAINID"[:k]);
 OVERRIDE_ERROR = :override."OVERRIDE_ERROR"[:k];
 OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
-SECONDS = GREATEST(:OVERRIDE_ERROR, :OVERRIDE_OK);
+/*SECONDS = GREATEST(:OVERRIDE_ERROR, :OVERRIDE_OK);
 IF SECONDS IS NOT NULL
 	THEN CUSTOM_RUN = ADD_SECONDS(CURRENT_TIMESTAMP,-SECONDS);
 	LAST_RUN = LEAST(LAST_RUN,CUSTOM_RUN);
-END IF;
+END IF;*/
 
 
 	    
@@ -115,7 +115,7 @@ END IF;
                 JOIN "DataWareHouse.Database.VirtualTables::TaskchainHeader" TaskChainHeader ON Log.INSTANCEID = TaskChainHeader.INSTANCEID AND Log.NAMESPACE = TaskChainHeader.NAMESPACE 
                 AND Log.TASKCHAINID = TaskChainHeader.TASKCHAINID AND TaskChainHeader.VALIDTO IS NULL
                 JOIN "DataWareHouse.Database.VirtualTables::TaskService" TaskService ON Log.INSTANCEID = TaskService.INSTANCEID AND TaskService.TASKGROUPID = 'hanaNative'
-                WHERE UPPER(Log.TASKCHAINID) = :TASKCHAINID  AND  UPPER(SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI)) = :CONTAINER
+                WHERE UPPER(Log.TASKCHAINID) = UPPER(:TASKCHAINID)  AND  UPPER(SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI)) = UPPER(:CONTAINER)
               ;
             
            
@@ -123,16 +123,16 @@ END IF;
          
             SELECT COUNT(*) INTO OK_AMOUNT
             FROM :chains a
-            JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
+            JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
             WHERE 
-            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)AND CURRENT_TIMESTAMP AND "STATUS" = 'OK'
+            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)AND CURRENT_TIMESTAMP AND "STATUS" = 'OK' AND OVERRIDE_OK > 0
             ;
             
              SELECT COUNT(*) INTO ERR_AMOUNT
             FROM :chains a
-            JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
+            JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
             WHERE 
-            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)AND CURRENT_TIMESTAMP AND "STATUS" IN ('ABORTED','ERROR')
+            default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)AND CURRENT_TIMESTAMP AND "STATUS" IN ('ABORTED','ERROR') AND OVERRIDE_ERROR > 0
             ;
            
                 
@@ -141,15 +141,15 @@ END IF;
                :ERR_AMOUNT AS "ERR_AMOUNT",
                :OK_AMOUNT AS "OK_AMOUNT"
                FROM :chains a
-               JOIN :override b ON (a.LOG_TASKCHAINID = b.TASKCHAINID AND a."SCHEMA" = b."CONTAINER")
+               JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
             	WHERE 
             	(ENDTIME > :LAST_RUN AND ENDTIME >:FIRST_RUN AND "STATUS" IN ('ERROR','ABORTED'))
             	AND 
             	default_override = 'FALSE' 
             		OR (default_override='TRUE' 
             			AND ( 
-            				(:ERR_AMOUNT >  OVERRIDE_ERROR_AMOUNT AND OVERRIDE_ERROR_AMOUNT IS NOT NULL) 
-            					OR (:OK_AMOUNT < OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL)))
+            				(:ERR_AMOUNT >=  OVERRIDE_ERROR_AMOUNT AND OVERRIDE_ERROR_AMOUNT IS NOT NULL AND OVERRIDE_ERROR > 0) 
+            					OR (:OK_AMOUNT <= OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL  AND OVERRIDE_OK > 0)))
                  ORDER BY STARTTIME DESC;
                 
                 
