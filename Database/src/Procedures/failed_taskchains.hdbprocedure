@@ -149,7 +149,7 @@ END IF;*/
             		OR (default_override='TRUE' 
             			AND ( 
             				(:ERR_AMOUNT >=  OVERRIDE_ERROR_AMOUNT AND OVERRIDE_ERROR_AMOUNT IS NOT NULL AND OVERRIDE_ERROR > 0) 
-            					OR (:OK_AMOUNT <= OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL  AND OVERRIDE_OK > 0)))
+            					OR (:OK_AMOUNT < OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL  AND OVERRIDE_OK > 0)))
                  ORDER BY STARTTIME DESC;
                 
                 
