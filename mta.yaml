@@ -31,6 +31,36 @@ modules:
         properties:
           key: XSA_KEY_VAULT
           service: '~{the-service-name}'
+    
+      - name: SI_BW_HR
+        group: SERVICE_REPLACEMENTS
+
+        properties:
+          key: SI_BW_HR
+          service: ~{the-service-name}
+                            
+
+
+    
+      - name: BW_SERVICE
+        group: SERVICE_REPLACEMENTS
+
+        properties:
+          key: BW_SERVICE
+          service: ~{the-service-name}
+                            
+
+
+    
+      - name: SI_LDAP
+        group: SERVICE_REPLACEMENTS
+
+        properties:
+          key: SI_LDAP
+          service: ~{the-service-name}
+                            
+
+
     properties:
       memory: 256M
       HDI_DEPLOY_OPTIONS:
@@ -72,3 +102,27 @@ resources:
     type: org.cloudfoundry.existing-service
     parameters:
       service-name: hana.smtp
+
+  - name: SI_BW_HR
+    parameters:
+       service-name: SI_BW_HR-container
+    properties:
+       the-service-name: ${service-name}
+    type: org.cloudfoundry.existing-service
+
+
+  - name: BW_SERVICE
+    parameters:
+       service-name: BW_SERVICE
+    properties:
+       the-service-name: ${service-name}
+    type: org.cloudfoundry.existing-service
+
+
+  - name: SI_LDAP
+    parameters:
+       service-name: SI_LDAP-container
+    properties:
+       the-service-name: ${service-name}
+    type: org.cloudfoundry.existing-service
+

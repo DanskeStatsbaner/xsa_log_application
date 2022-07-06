@@ -16,5 +16,17 @@
       "object": "DUMMY",
       "schema": "SYS"
     }
+  },
+  "DataWareHouse.Database.Synonyms::chkrkomcf": {
+    "target": {
+      "object": "DataWareHouse.Database.Views::chkrkomcf",
+      "*.configure": "SI_BW_HR"
+    }
+  },
+  "DataWareHouse.Database.Synonyms::LDAP": {
+    "target": {
+      "object": "DataWareHouse.Database.Views::LDAP",
+      "*.configure": "SI_LDAP"
+    }
   }
 }

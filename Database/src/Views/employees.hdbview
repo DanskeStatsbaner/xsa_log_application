@@ -1,0 +1,13 @@
+ view  "DataWareHouse.Database.Views::employees"  as
+ 
+SELECT DISTINCT
+	"userID",
+	"userName",
+	HR2."ZUSRID_L" AS "email"
+FROM "DataWareHouse.Database.Synonyms::LDAP" 
+	(placeholder."$$SystemTime$$"=>'9999-12-31') LDAP
+INNER JOIN "DataWareHouse.Database.Synonyms::chkrkomcf" HR ON (LDAP."userID" = HR."ZUSRID" AND HR."0DATETO" = '99991231')
+INNER JOIN "DataWareHouse.Database.Synonyms::chkrkomcf" HR2 ON (HR."0EMPLOYEE" = HR2."0EMPLOYEE" AND HR2."0DATETO" = '99991231'  AND HR2."ZUSRID_L" LIKE '%DSB.DK%' AND HR2."ZSUBTY" = '0010')
+WHERE "businessFunction" = 'SHIP.NU0.DEVELOPER'
+
+

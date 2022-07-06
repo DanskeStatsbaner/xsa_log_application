@@ -41,7 +41,8 @@ context log {
     entity mail_individual {
             ID            : Integer generated always as identity(start with 1 increment by 1);
         key USERNAME      : String(500) not null;
-            EMAIL_ADDRESS : String(500) not null;
+        	EMAIL_ADDRESS : String(500) not null;
+            FULL_NAME		: String(500) not null;
     };
 
     entity mail_list {

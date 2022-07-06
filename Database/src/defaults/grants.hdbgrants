@@ -10,5 +10,42 @@
 				"external_access"
 			]
 		}
+	},
+	"BW_SERVICE": {
+		"object_owner": {
+			"global_roles": [{
+				"roles": ["external_access_g#"],
+				"roles_with_admin_option": ["bw2hana/SAPHANADB_SAP_BW_MODEL_GENERATION_SAPHANADB_HANABW"]
+			}]
+		},
+		"application_user": {
+			"global_roles": [{
+				"roles": ["external_access", "bw2hana/SAPHANADB_SAP_BW_MODEL_GENERATION_SAPHANADB_HANABW"]
+			}]
+		}
+	},
+		"SI_BW_HR": {
+		"object_owner": {
+			"container_roles": [
+				"external_access_g#"
+			]
+		},
+		"application_user": {
+			"container_roles": [
+				"external_access"
+			]
+		}
+	},
+		"SI_LDAP": {
+		"object_owner": {
+			"container_roles": [
+				"external_access_g#"
+			]
+		},
+		"application_user": {
+			"container_roles": [
+				"external_access"
+			]
+		}
 	}
 }

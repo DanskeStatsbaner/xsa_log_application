@@ -1,5 +1,7 @@
 {
   "DataWareHouse.Database.Synonyms::humio": {},
   "DataWareHouse.Database.Synonyms::token": {},
-  "DataWareHouse.Database.Synonyms::DUMMY": {}
+  "DataWareHouse.Database.Synonyms::DUMMY": {},
+  "DataWareHouse.Database.Synonyms::chkrkomcf": {},
+  "DataWareHouse.Database.Synonyms::LDAP": {}
 }
