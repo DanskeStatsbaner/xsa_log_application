@@ -23,6 +23,11 @@
       <descriptions defaultDescription="EMAIL_ADDRESS"/>
       <keyMapping columnObjectName="log.mail_individual" columnName="EMAIL_ADDRESS"/>
     </attribute>
+  
+    <attribute id="FULL_NAME" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="FULL_NAME"/>
+      <keyMapping columnObjectName="log.mail_individual" columnName="FULL_NAME"/>
+    </attribute>
   </attributes>
   <calculatedAttributes/>
   <baseMeasures/>
