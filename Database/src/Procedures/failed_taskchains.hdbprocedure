@@ -2,7 +2,7 @@ PROCEDURE "DataWareHouse.Database.Procedures::failed_taskchains"( )
 LANGUAGE SQLSCRIPT
 SQL SECURITY INVOKER
 AS
-BEGIN SEQUENTIAL EXECUTION
+BEGIN
 
 
 

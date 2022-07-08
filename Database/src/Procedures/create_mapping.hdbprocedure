@@ -6,7 +6,7 @@ individual_id INTEGER ARRAY
 LANGUAGE SQLSCRIPT
 SQL SECURITY INVOKER
 AS
-BEGIN SEQUENTIAL EXECUTION
+BEGIN
 
 DECLARE k,g_id, i_id Integer;
 SELECT "ID"  INTO g_id  FROM "DataWareHouse.Database.Tables::log.mail_group" where "ID" = :mailgroup_id;
