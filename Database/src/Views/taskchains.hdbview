@@ -5,7 +5,7 @@ AS
 (SELECT DISTINCT
 	CASE 
 		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
-		WHEN "SYSTEM_ID" = 'NPT' THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NT0' THEN 'TEST'
 		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
 		END AS "Environment" 
 		FROM "DataWareHouse.Database.VirtualTables::M_DATABASE"),
