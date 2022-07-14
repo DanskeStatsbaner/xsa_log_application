@@ -3,13 +3,20 @@ LANGUAGE SQLSCRIPT
 SQL SECURITY INVOKER
 AS
 BEGIN
+/*
+Author: Nichlas Holmgren
+Description: This procedure sends messaging about failed taskchains in regards to the logrule setup.
+Messages are sent to humio, and temporarily stored in HANA for the Mail_Sender module.
+*/
 
-
-
-DECLARE k  INTEGER;
-DECLARE  OVERRIDE_ERROR, OVERRIDE_OK, SECONDS, OK_AMOUNT, ERR_AMOUNT BIGINT;
+/*
+Variable Declaration
+Below Several variables are declared, both for use for logical reasons, but also for looping throwgh and sending messages to humio
+*/
+DECLARE k  INTEGER;  --Used in FOR-Loop
+DECLARE  OVERRIDE_ERROR, OVERRIDE_OK, OK_AMOUNT, ERR_AMOUNT BIGINT; 
 DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
-DECLARE RUNTIME_START, RUNTIME_END, LAST_RUN, FIRST_RUN, CUSTOM_RUN TIMESTAMP;
+DECLARE RUNTIME_START, RUNTIME_END, LAST_RUN TIMESTAMP;
 DECLARE IS_OVERRIDE,ENVIRONMENT, HANA_LOG_NAME, lowercase_environment NVARCHAR (50);
 DECLARE  INSTANCEID, LOGID, STATUS, NAMESPACE, TASKCHAINID, SCHEDULEDECSRIPTION, STARTTIME, ENDTIME, FINISHED, RUN_TIME, DESCRIPTION, VALIDTO, CHANGEDBY, ACTIVATIONSTATUS, TASKTIMEOUT, 
 SERVICEURL, CONTAINER, MODULE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, HANA_LOG_COMMENT, RESPONSIBLE NVARCHAR (2000);
@@ -17,11 +24,14 @@ DECLARE ingesttoken NVARCHAR(2500);
 
 
 
-FIRST_RUN = '2022-05-23';
-RUNTIME_START = CURRENT_TIMESTAMP;
-HANA_LOG_NAME ='failed_taskchains';
-SELECT IFNULL(MAX("RUNTIME_START"),'2022-06-08 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run";
+RUNTIME_START = CURRENT_TIMESTAMP; -- Used to store information about procedure run
+HANA_LOG_NAME ='failed_taskchains'; -- Used to store information about procedure run
+SELECT IFNULL(MAX("RUNTIME_START"),'2022-06-08 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run"; --Used to define when to run in where clause.
 
+/*
+Runs in all procedures containing humio ingestion.
+Finds the environment in which the procedure run, and change it into DEV, TEST, PROD for readability and uniformity
+*/
 
 SELECT DISTINCT
 	CASE 
@@ -31,15 +41,13 @@ SELECT DISTINCT
 		END AS "Environment" INTO ENVIRONMENT
 		FROM "DataWareHouse.Database.VirtualTables::M_DATABASE";
  
- lowercase_environment := LOWER(:ENVIRONMENT);
+
  
  
-   CALL "DataWareHouse.Database.Synonyms::token"(
-	APP => 'AP_HUMIO',
-	EXCEPTION_ON_ERROR => 1,
-	JWT => ingesttoken
-);
- 
+
+ /*
+ Finds rules that has been setup in the logrule table. Further defines wether the rule is the default rule or overrriden by a custom ruleset
+ */
 override = SELECT 
 ID,
 CONTAINER,
@@ -59,11 +67,12 @@ WHEN UPPER(OVERRIDE_ERROR_NOTATION) = 'M' THEN OVERRIDE_ERROR_SPAN*60
 WHEN UPPER(OVERRIDE_ERROR_NOTATION) = 'S' THEN OVERRIDE_ERROR_SPAN
 END AS OVERRIDE_ERROR,
 CASE
+-- Rules to make sure the override rule is properly setup. If it's not setup correctly the will be seen as noot being applicable (default_override = FALSE)
 WHEN 
 	OVERRIDE_OK_AMOUNT IS NOT NULL 
 	AND OVERRIDE_OK_AMOUNT > 0 
 	AND OVERRIDE_OK_NOTATION  IS NOT NULL 
-	AND UPPER(OVERRIDE_OK_NOTATION) IN('D','H','M','S')  
+	AND UPPER(OVERRIDE_OK_NOTATION) IN('D','H','M','S')  -- Makes sure that rule is only seen as valid if D, H, M or S is used as per user documentation
 	AND OVERRIDE_OK_SPAN IS NOT NULL 
 	AND OVERRIDE_OK_SPAN > 0 
 	THEN 'TRUE'
@@ -73,7 +82,7 @@ WHEN
 	AND OVERRIDE_ERROR_SPAN IS NOT NULL 
 	AND OVERRIDE_ERROR_SPAN > 0 
 	AND OVERRIDE_ERROR_NOTATION IS NOT NULL 
-	AND UPPER(OVERRIDE_ERROR_NOTATION) IN('D','H','M','S') 
+	AND UPPER(OVERRIDE_ERROR_NOTATION) IN('D','H','M','S') -- Makes sure that rule is only seen as valid if D, H, M or S is used as per user documentation
 	THEN 'TRUE'
 ELSE 'FALSE'
 END AS default_override,
@@ -84,19 +93,27 @@ FROM "DataWareHouse.Database.Tables::log.log_rules"
 ORDER BY "ID"
 ;
 
+--Creates a humio token to ingest into humio. Put here before the for loop to only create it once
+
+   CALL "DataWareHouse.Database.Synonyms::token"(
+	APP => 'AP_HUMIO',
+	EXCEPTION_ON_ERROR => 1,
+	JWT => ingesttoken
+);
+
+lowercase_environment := LOWER(:ENVIRONMENT); -- Used to find  "SCHEMA" in the chains table variable.  Put here before the for loop to only define it once
+
 FOR k IN 1..RECORD_COUNT(:override) DO 
 CONTAINER = REPLACE(UPPER(:override."CONTAINER"[:k]),'_','-');
 TASKCHAINID = UPPER(:override."TASKCHAINID"[:k]);
 OVERRIDE_ERROR = :override."OVERRIDE_ERROR"[:k];
 OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
-/*SECONDS = GREATEST(:OVERRIDE_ERROR, :OVERRIDE_OK);
-IF SECONDS IS NOT NULL
-	THEN CUSTOM_RUN = ADD_SECONDS(CURRENT_TIMESTAMP,-SECONDS);
-	LAST_RUN = LEAST(LAST_RUN,CUSTOM_RUN);
-END IF;*/
 
 
-	    
+
+	    /*
+	    :chains looks into the system tables to find taskchains defined in the ruleset
+	    */
 	      chains=  SELECT 
                     Log.INSTANCEID AS INSTANCEID,
                     Log.LOGID AS LOGID,
@@ -120,14 +137,14 @@ END IF;*/
             
            
             
-         
+         /* If override ok rule is setup, this inserts the amount of OK runs for the given time periode into the OK_AMOUNT variable for further check in the :errors table variable*/
             SELECT COUNT(*) INTO OK_AMOUNT
             FROM :chains a
             JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
             WHERE 
             default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_OK)AND CURRENT_TIMESTAMP AND "STATUS" = 'OK' AND OVERRIDE_OK > 0
             ;
-            
+            /* If override error rule is setup, this inserts the amount of ERROR runs for the given time periode into the ERROR_AMOUNT variable for further check in the :errors table variable*/
              SELECT COUNT(*) INTO ERR_AMOUNT
             FROM :chains a
             JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
@@ -135,15 +152,15 @@ END IF;*/
             default_override ='TRUE' AND ENDTIME BETWEEN ADD_SECONDS(CURRENT_TIMESTAMP,-OVERRIDE_ERROR)AND CURRENT_TIMESTAMP AND "STATUS" IN ('ABORTED','ERROR') AND OVERRIDE_ERROR > 0
             ;
            
-                
+                /*Takes chains and apply rules if applicable - if not, apply default rule */
                 errors = SELECT *,
-               ROW_NUMBER() OVER (PARTITION BY a.LOG_TASKCHAINID ORDER BY a.STARTTIME DESC) as ROWNUMBER,
+               ROW_NUMBER() OVER (PARTITION BY a.LOG_TASKCHAINID ORDER BY a.STARTTIME DESC) as ROWNUMBER, --We don't want to send all failed chains in the given time periode, so we only log the latest failure since last run 
                :ERR_AMOUNT AS "ERR_AMOUNT",
                :OK_AMOUNT AS "OK_AMOUNT"
                FROM :chains a
                JOIN :override b ON (UPPER(a.LOG_TASKCHAINID) = UPPER(b.TASKCHAINID) AND UPPER(a."SCHEMA") = UPPER(b."CONTAINER"))
             	WHERE 
-            	(ENDTIME > :LAST_RUN AND ENDTIME >:FIRST_RUN AND "STATUS" IN ('ERROR','ABORTED'))
+            	(ENDTIME > :LAST_RUN  AND "STATUS" IN ('ERROR','ABORTED'))
             	AND 
             	default_override = 'FALSE' 
             		OR (default_override='TRUE' 
@@ -152,16 +169,17 @@ END IF;*/
             					OR (:OK_AMOUNT < OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL  AND OVERRIDE_OK > 0)))
                  ORDER BY STARTTIME DESC;
                 
-                
+                /*We don't want to send all failed chains in the given time periode, so we only log the latest failure since last run */
                humio = select * from :errors where ROWNUMBER = 1;
                
+               /*if the warning_op_in is set to TRUE, save the mail into warning_mails variable to insert into :warning_mails table for later use in mail_sender module*/
                warning_mails = select * from :humio a
                               where  "WARNING_OPT_IN" = TRUE;
                
-               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  ID, MAIL_GROUP_ID FROM :warning_mails;
+               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  ID, MAIL_GROUP_ID FROM :warning_mails; -- insert into :warning_mails table for later use in mail_sender module
 
                
-               
+       /*Loops thorugh all records in the humio table to ingest them one row at a time into humio */        
 FOR k IN 1..RECORD_COUNT(:humio) DO 
 		INSTANCEID = IFNULL(:humio."INSTANCEID"[:k],'NA');
 		LOGID = IFNULL(:humio."LOGID"[:k],-1);
@@ -178,7 +196,7 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 		RESPONSIBLE_EMAIL = IFNULL(:humio."RESPONSIBLE_EMAIL"[:k],'NA');
 		RESPONSIBLE = IFNULL(:humio."RESPONSIBLE"[:k],'NA');
 	
-		
+		/* Ingests the messages into humio*/
 	CALL "DataWareHouse.Database.Synonyms::humio"(
     MESSAGE => 'Native HANA system log',
     LOG_LEVEL => 'WARNING',
