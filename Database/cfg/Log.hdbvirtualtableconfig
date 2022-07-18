@@ -1,0 +1,10 @@
+{
+	"DataWareHouse.Database.VirtualTables::Log":{
+		"target":{
+			"remote":"HANA_DWF_TOE",
+			"database":"NULL",
+			"schema.configure":"SCHEMA/DWF_TOE",
+			"object":"com.sap.dwf.toe::Log"
+		}
+	}
+}

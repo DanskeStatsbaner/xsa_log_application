@@ -1,2 +1,2 @@
-VIRTUAL TABLE "DataWareHouse.Database.VirtualTables::TaskService" AT "HANA_DWF_TOE"." "."28A88D4D539F4CF69D3CABDB77B29793"."com.sap.dwf.toe::TaskType.TaskService" 
+VIRTUAL TABLE "DataWareHouse.Database.VirtualTables::TaskService" AT "HANA_DWF_TOE"." "."NULL"."com.sap.dwf.toe::TaskType.TaskService" 
 

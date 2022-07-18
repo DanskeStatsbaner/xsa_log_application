@@ -49,7 +49,11 @@ modules:
           key: BW_SERVICE
           service: ~{the-service-name}
                             
-
+      - name: SCHEMA-service
+        group: SERVICE_REPLACEMENTS
+        properties:
+          key: ServiceName_1
+          service: ~{the-service-name}
 
     
       - name: SI_LDAP
@@ -118,6 +122,12 @@ resources:
        the-service-name: ${service-name}
     type: org.cloudfoundry.existing-service
 
+  - name: SCHEMA-service
+    parameters:
+       service-name: SCHEMA
+    properties:
+       the-service-name: ${service-name}
+    type: org.cloudfoundry.existing-service
 
   - name: SI_LDAP
     parameters:
