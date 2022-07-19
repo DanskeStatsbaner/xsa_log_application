@@ -49,10 +49,10 @@ modules:
           key: BW_SERVICE
           service: ~{the-service-name}
                             
-      - name: SCHEMA-service
+      - name: SCHEMA-UPS
         group: SERVICE_REPLACEMENTS
         properties:
-          key: ServiceName_1
+          key: SCHEMA-UPS
           service: ~{the-service-name}
 
     
@@ -122,7 +122,7 @@ resources:
        the-service-name: ${service-name}
     type: org.cloudfoundry.existing-service
 
-  - name: SCHEMA-service
+  - name: SCHEMA-UPS
     parameters:
        service-name: SCHEMA
     properties:

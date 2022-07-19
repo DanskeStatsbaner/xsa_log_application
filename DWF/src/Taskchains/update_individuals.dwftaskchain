@@ -11,7 +11,12 @@
         "type": "executeFlowGraph",
         "taskGroup": "hanaNative",
         "description": "runs individual_update flowgraph",
-        "parameterValues": []
+        "parameterValues": [
+          {
+            "id": "flowGraphName",
+            "value": "DataWareHouse.Database.Flowgraphs::individual_update"
+          }
+        ]
       },
       "preconditions": [
         {
