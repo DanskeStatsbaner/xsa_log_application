@@ -1,0 +1,1 @@
+SYSTEM VERSIONING "DataWareHouse.Database.Tables::log.warning_mails"("SysValidFrom", "SysValidTo") HISTORY TABLE "DataWareHouse.Database.Tables::log.warning_mails_HIST" NOT VALIDATED

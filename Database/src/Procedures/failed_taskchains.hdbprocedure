@@ -170,13 +170,48 @@ OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
                  ORDER BY STARTTIME DESC;
                 
                 /*We don't want to send all failed chains in the given time periode, so we only log the latest failure since last run */
-               humio = select * from :errors where ROWNUMBER = 1;
+               humio = SELECT * FROM :errors WHERE ROWNUMBER = 1;
                
                /*if the warning_op_in is set to TRUE, save the mail into warning_mails variable to insert into :warning_mails table for later use in mail_sender module*/
-               warning_mails = select * from :humio a
-                              where  "WARNING_OPT_IN" = TRUE;
+               warning_mails_pre = SELECT
+               "ID" AS "LOG_RULES_ID",
+               "MAIL_GROUP_ID",
+               "ENDTIME"
+               FROM :humio a
+               WHERE  "WARNING_OPT_IN" = TRUE;
+                              
+               warning_mails_24h = 
+               SELECT
+               c."LOG_RULES_ID" AS "LOG_RULES_ID",
+               c."MAIL_GROUP_ID" AS "MAIL_GROUP_ID"
+               FROM :warning_mails_pre c
+               INNER JOIN "DataWareHouse.Database.Tables::log.warning_mails_HIST"  h ON (c."LOG_RULES_ID" = h."LOG_RULES_ID"  AND c."MAIL_GROUP_ID" = h."MAIL_GROUP_ID") 
+			   WHERE SECONDS_BETWEEN(h."SysValidTo",c."ENDTIME") >= 86400;
                
-               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  ID, MAIL_GROUP_ID FROM :warning_mails; -- insert into :warning_mails table for later use in mail_sender module
+               warning_mails_new =
+	                SELECT 
+					"LOG_RULES_ID",
+					"MAIL_GROUP_ID"
+					FROM :warning_mails_pre
+					EXCEPT
+					SELECT 
+					"LOG_RULES_ID",
+					"MAIL_GROUP_ID"
+					FROM "DataWareHouse.Database.Tables::log.warning_mails_HIST" ;
+					
+					warning_mails = 
+					SELECT 
+					"LOG_RULES_ID",
+					"MAIL_GROUP_ID"
+					FROM :warning_mails_new
+					UNION
+					SELECT
+					"LOG_RULES_ID",
+					"MAIL_GROUP_ID"
+					FROM :warning_mails_24h;
+					
+               
+               INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  LOG_RULES_ID, MAIL_GROUP_ID FROM :warning_mails; -- insert into :warning_mails table for later use in mail_sender module
 
                
        /*Loops thorugh all records in the humio table to ingest them one row at a time into humio */        
