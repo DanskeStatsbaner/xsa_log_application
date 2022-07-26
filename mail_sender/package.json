@@ -4,7 +4,6 @@
     "@sap/xsjs": "^6",
     "sap-cf-mailer": "latest",
 	"@sap/hdbext": "latest",
-	"@sap/hana-client": "latest",
 	"express": "latest",
 	"http": "latest", 
 	"mailer": "latest",
