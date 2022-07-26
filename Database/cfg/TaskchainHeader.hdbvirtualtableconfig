@@ -3,7 +3,7 @@
 		"target":{
 			"remote":"HANA_DWF_TOE",
 			"database":"NULL",
-			"schema.configure":"SCHEMA/DWF_TOE",
+			"schema.configure":"BUILD_PARAMETER/DWF_TOE_SCHEMANAME",
 			"object":"com.sap.dwf.toe::TaskChain.TaskChainHeader"
 		}
 	}
