@@ -9,6 +9,10 @@ Description: This procedure sends messaging about failed taskchains in regards t
 Messages are sent to humio, and temporarily stored in HANA for the Mail_Sender module.
 */
 
+/* Changes
+24.08.2022. Add an empty row into humio. We wanted to send humio every day a log, so that the email notification from HUMIO sent alert every day.
+DAT5-2254, Marek Janczura*/
+
 /*
 Variable Declaration
 Below Several variables are declared, both for use for logical reasons, but also for looping throwgh and sending messages to humio
@@ -247,6 +251,23 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 END FOR;
 
 END FOR;
+
+/* Modification 24.08.2022
+DAT5-2254, Marek Janczura*/
+CALL "DataWareHouse.Database.Synonyms::humio"(
+    MESSAGE => 'Native HANA system log',
+    LOG_LEVEL => 'DUMMY row',
+    HOST => 'HANA',
+    SRC => 'failed_taskchains.hdbprocedure',
+       ATTRIBUTES => '"ENVIRONMENT":"' || 'PROD' || '", "INSTANCEID":"' || 'NA' || '", "LOGID":"' || 'NA' || '", "STATUS":"' || 'NA' || '", "NAMESPACE":"' || 'NA'  || '", "TASKCHAINID":"' || ' '
+       || '", "STARTTIME":"' || ' ' || '", "ENDTIME":"' || 'NA' ||  '", "FINISHED":"' || 'NA' || '", "RUN_TIME":"' || 'NA' || '", "DESCRIPTION":"' || 'NA' ||  '", "CONTAINER":"' || ' ' || '", "RESPONSIBLE_NAME":"' || ' ' || '", "RESPONSIBLE_EMAIL":"' || 'NA'
+       || '", "RESPONSIBLE":"' || ' '
+       ||'"',
+    JWT => :ingesttoken,
+    EXCEPTION_ON_ERROR => 1
+);
+
+
 
 RUNTIME_END = CURRENT_TIMESTAMP;
 INSERT INTO "DataWareHouse.Database.Tables::log.procedure_run" ("NAME", "RUNTIME_START", "RUNTIME_END", "COMMENT") VALUES(:HANA_LOG_NAME, :RUNTIME_START, :RUNTIME_END, :HANA_LOG_COMMENT);
