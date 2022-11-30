@@ -28,7 +28,7 @@ pipeline {
         apiKey = credentials("Octopus-Api")
         octoName = projectName.toUpperCase()
         firstCharInProject = "${daProject.substring(0, 1).toUpperCase()}"
-        parentProject = "XSA_MASTER"
+        parentProject = "XSA_MASTER_X"
         octoUrl = "https://octopus.azure.dsb.dk"
     }
 
