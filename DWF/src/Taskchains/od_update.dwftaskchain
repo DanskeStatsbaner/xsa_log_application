@@ -1,0 +1,29 @@
+{
+  "resumeBehavior": "NO_RESUME",
+  "taskList": {
+    "1": {
+      "inline": {
+        "type": "START",
+        "taskGroup": "com.sap.dwf.toe.executionControl"
+      }
+    },
+    "2": {
+      "inline": {
+        "type": "executeFlowGraph",
+        "taskGroup": "hanaNative",
+        "parameterValues": [
+          {
+            "id": "flowGraphName",
+            "value": "DataWareHouse.Database.Flowgraphs::object_dependencies"
+          }
+        ]
+      },
+      "preconditions": [
+        {
+          "from": "1",
+          "status": "NEUTRAL"
+        }
+      ]
+    }
+  }
+}

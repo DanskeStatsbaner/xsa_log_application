@@ -17,6 +17,12 @@
       "schema": "SYS"
     }
   },
+   "DataWareHouse.Database.Synonyms::OBJECT_DEPENDENCIES": {
+    "target": {
+      "object": "OBJECT_DEPENDENCIES",
+      "schema": "SYS"
+    }
+  },
   "DataWareHouse.Database.Synonyms::chkrkomcf": {
     "target": {
       "object": "DataWareHouse.Database.Views::chkrkomcf",
