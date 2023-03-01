@@ -1,0 +1,20 @@
+namespace DataWareHouse.Database.Tables;
+
+context object {
+
+    /*@@layout{"layoutInfo":{"x":-369,"y":-129.5}}*/
+
+
+    entity object_dependencies {
+       
+	BASE_DATABASE_NAME : String(256);
+	BASE_SCHEMA_NAME : String(256);
+	BASE_OBJECT_NAME : String(256);
+	BASE_OBJECT_TYPE : hana.VARCHAR(32);
+	DEPENDENT_DATABASE_NAME : String(256);
+	DEPENDENT_SCHEMA_NAME : String(256);
+	DEPENDENT_OBJECT_NAME : String(256);
+	DEPENDENT_OBJECT_TYPE : hana.VARCHAR(32);
+	DEPENDENCY_TYPE : Integer;
+    };
+};
