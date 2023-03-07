@@ -17,4 +17,10 @@ context object {
 	DEPENDENT_OBJECT_TYPE : hana.VARCHAR(32);
 	DEPENDENCY_TYPE : Integer;
     };
+        
+    entity schema_status {
+    
+	SCHEMA_NAME : String(256);
+	Status : Integer;
+    };
 };
