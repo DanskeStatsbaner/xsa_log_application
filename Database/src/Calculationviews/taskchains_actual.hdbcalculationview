@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::taskchains_actual" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="taskchainsV2"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.VirtualTables::Log">
+    <resourceUri>DataWareHouse.Database.VirtualTables::Log</resourceUri>
+  </DataSource>
+  <DataSource id="DataWareHouse.Database.VirtualTables::TaskchainHeader">
+    <resourceUri>DataWareHouse.Database.VirtualTables::TaskchainHeader</resourceUri>
+  </DataSource>
+  <DataSource id="DataWareHouse.Database.VirtualTables::TaskService">
+    <resourceUri>DataWareHouse.Database.VirtualTables::TaskService</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="LOG" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="NAMESPACE"/>
+      <viewAttribute id="TASKCHAINID"/>
+      <viewAttribute id="STARTTIME"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="FINISHED"/>
+      <viewAttribute id="RUN_TIME"/>
+      <viewAttribute id="DESCRIPTION"/>
+      <viewAttribute id="INSTANCEID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="DataWareHouse.Database.VirtualTables::Log"/>
+    <filter>to_date(&quot;STARTTIME&quot;) = current_date or
+to_date(&quot;STARTTIME&quot;) = add_days(current_date,-1)</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="TasckChainHeader" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="INSTANCEID"/>
+      <viewAttribute id="NAMESPACE"/>
+      <viewAttribute id="VALIDTO"/>
+    
+      <viewAttribute id="TASKCHAINID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="DataWareHouse.Database.VirtualTables::TaskchainHeader"/>
+    <filter>&quot;VALIDTO&quot; is null</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="TaskService" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="INSTANCEID"/>
+      <viewAttribute id="TASKGROUPID"/>
+      <viewAttribute id="SERVICEURI"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_schema" datatype="NVARCHAR" length="13" expressionLanguage="SQL">
+        <formula>case substr(&quot;SERVICEURI&quot;,17,1)
+WHEN 'd' THEN substr(&quot;SERVICEURI&quot;,21,LOCATE_REGEXPR('(?&lt;=backend)' IN &quot;SERVICEURI&quot;) -29)
+WHEN 'p' THEN substr(&quot;SERVICEURI&quot;,22,LOCATE_REGEXPR('(?&lt;=backend)' IN &quot;SERVICEURI&quot;) -30)
+WHEN 't' THEN substr(&quot;SERVICEURI&quot;,22,LOCATE_REGEXPR('(?&lt;=backend)' IN &quot;SERVICEURI&quot;) -30)
+END</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="DataWareHouse.Database.VirtualTables::TaskService"/>
+    <filter>&quot;TASKGROUPID&quot; = 'hanaNative'</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_1" cardinality="CN_N" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="NAMESPACE"/>
+      <viewAttribute id="TASKCHAINID"/>
+      <viewAttribute id="STARTTIME"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="FINISHED"/>
+      <viewAttribute id="RUN_TIME"/>
+      <viewAttribute id="DESCRIPTION"/>
+      <viewAttribute id="INSTANCEID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="LOG">
+      <mapping xsi:type="Calculation:AttributeMapping" target="STATUS" source="STATUS"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="NAMESPACE" source="NAMESPACE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="TASKCHAINID" source="TASKCHAINID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="STARTTIME" source="STARTTIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ENDTIME" source="ENDTIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="FINISHED" source="FINISHED"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="RUN_TIME" source="RUN_TIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DESCRIPTION" source="DESCRIPTION"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="INSTANCEID" source="INSTANCEID"/>
+    </input>
+    <input node="TasckChainHeader">
+      <mapping xsi:type="Calculation:AttributeMapping" target="INSTANCEID" source="INSTANCEID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="NAMESPACE" source="NAMESPACE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="TASKCHAINID" source="TASKCHAINID"/>
+    </input>
+    <joinAttribute name="INSTANCEID"/>
+    <joinAttribute name="NAMESPACE"/>
+    <joinAttribute name="TASKCHAINID"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Join_2" cardinality="CN_N" joinType="inner">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="NAMESPACE"/>
+      <viewAttribute id="TASKCHAINID"/>
+      <viewAttribute id="STARTTIME"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="FINISHED"/>
+      <viewAttribute id="RUN_TIME"/>
+      <viewAttribute id="DESCRIPTION"/>
+      <viewAttribute id="INSTANCEID"/>
+      <viewAttribute id="SERVICEURI"/>
+    
+      <viewAttribute id="CC_schema"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="Join_1">
+      <mapping xsi:type="Calculation:AttributeMapping" target="STATUS" source="STATUS"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="NAMESPACE" source="NAMESPACE"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="TASKCHAINID" source="TASKCHAINID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="STARTTIME" source="STARTTIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ENDTIME" source="ENDTIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="FINISHED" source="FINISHED"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="RUN_TIME" source="RUN_TIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="DESCRIPTION" source="DESCRIPTION"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="INSTANCEID" source="INSTANCEID"/>
+    </input>
+    <input node="TaskService">
+      <mapping xsi:type="Calculation:AttributeMapping" target="SERVICEURI" source="SERVICEURI"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_schema" source="CC_schema"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="INSTANCEID" source="INSTANCEID"/>
+    </input>
+    <joinAttribute name="INSTANCEID"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Join_2">
+  <attributes>
+    <attribute id="STATUS" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="STATUS"/>
+      <keyMapping columnObjectName="Join_2" columnName="STATUS"/>
+    </attribute>
+    <attribute id="NAMESPACE" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="NAMESPACE"/>
+      <keyMapping columnObjectName="Join_2" columnName="NAMESPACE"/>
+    </attribute>
+    <attribute id="TASKCHAINID" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="TASKCHAINID"/>
+      <keyMapping columnObjectName="Join_2" columnName="TASKCHAINID"/>
+    </attribute>
+    <attribute id="STARTTIME" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="STARTTIME"/>
+      <keyMapping columnObjectName="Join_2" columnName="STARTTIME"/>
+    </attribute>
+    <attribute id="ENDTIME" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ENDTIME"/>
+      <keyMapping columnObjectName="Join_2" columnName="ENDTIME"/>
+    </attribute>
+    <attribute id="FINISHED" order="6" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="FINISHED"/>
+      <keyMapping columnObjectName="Join_2" columnName="FINISHED"/>
+    </attribute>
+    <attribute id="RUN_TIME" order="7" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="RUN_TIME"/>
+      <keyMapping columnObjectName="Join_2" columnName="RUN_TIME"/>
+    </attribute>
+    <attribute id="DESCRIPTION" order="8" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DESCRIPTION"/>
+      <keyMapping columnObjectName="Join_2" columnName="DESCRIPTION"/>
+    </attribute>
+    <attribute id="INSTANCEID" order="9" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="INSTANCEID"/>
+      <keyMapping columnObjectName="Join_2" columnName="INSTANCEID"/>
+    </attribute>
+    <attribute id="SERVICEURI" order="10" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SERVICEURI"/>
+      <keyMapping columnObjectName="Join_2" columnName="SERVICEURI"/>
+    </attribute>
+  
+    <attribute id="CC_schema" order="11" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_schema"/>
+  
+      <keyMapping columnObjectName="Join_2" columnName="CC_schema"/>
+  
+    </attribute>
+  </attributes>
+  <calculatedAttributes>
+    <calculatedAttribute id="CC_Count" order="12" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_Count"/>
+      <keyCalculation datatype="INTEGER" expressionLanguage="SQL">
+        <formula>1</formula>
+      </keyCalculation>
+    </calculatedAttribute>
+  </calculatedAttributes>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="328" y="112"/>
+    
+      <rectangleSize width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="LOG" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="501"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="TasckChainHeader" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="302" y="501"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="TaskService" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="395" y="356"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="118" y="360"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape modelObjectName="LOG" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+    <shape modelObjectName="TasckChainHeader" modelObjectNameSpace="Join_1" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="171"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Join_2" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="328" y="217"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="Join_1" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+    <shape modelObjectName="TaskService" modelObjectNameSpace="Join_2" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="165"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

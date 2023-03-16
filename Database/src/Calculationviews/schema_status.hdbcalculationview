@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::schema_status" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="shema_status"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Calculationviews::taskchains_actual">
+    <resourceUri>DataWareHouse.Database.Calculationviews::taskchains_actual</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="INSTANCEID"/>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="NAMESPACE"/>
+      <viewAttribute id="LOG_TASKCHAINID"/>
+      <viewAttribute id="STARTTIME"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="FINISHED"/>
+      <viewAttribute id="SCHEMA"/>
+      <viewAttribute id="RUN_TIME"/>
+      <viewAttribute id="DESCRIPTION"/>
+      <viewAttribute id="COUNT"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_Date" datatype="DATE" expressionLanguage="SQL">
+        <formula>TO_DATE(&quot;ENDTIME&quot;)</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="DataWareHouse.Database.Calculationviews::taskchains_actual">
+      <mapping xsi:type="Calculation:AttributeMapping" target="LOG_TASKCHAINID" source="TASKCHAINID"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SCHEMA" source="CC_schema"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="COUNT" source="CC_Count"/>
+    </input>
+    <filter>to_date(&quot;STARTTIME&quot;) = add_days(to_date(CURRENT_TIMESTAMP), - 1) or
+to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="LOG_TASKCHAINID"/>
+      <viewAttribute id="ENDTIME" aggregationType="max"/>
+      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="SCHEMA"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <restrictedViewAttributes/>
+    <input node="Projection_1"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Aggregation_1">
+  <attributes>
+    <attribute id="STATUS" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="STATUS"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="STATUS"/>
+    </attribute>
+    <attribute id="LOG_TASKCHAINID" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="LOG_TASKCHAINID"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="LOG_TASKCHAINID"/>
+    </attribute>
+    <attribute id="ENDTIME" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="ENDTIME"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="ENDTIME"/>
+    </attribute>
+    <attribute id="CC_Date" order="4" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_Date"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="CC_Date"/>
+    </attribute>
+    <attribute id="SCHEMA" order="5" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SCHEMA"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="SCHEMA"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes>
+    <calculatedAttribute id="CC_Status_Number" order="6" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+      <keyCalculation datatype="INTEGER" expressionLanguage="SQL">
+        <formula>CASE &quot;STATUS&quot; 
+	 WHEN 'OK' then 0
+	 WHEN 'ERROR' then 2
+	 WHEN 'ABORTED' then 2
+ END</formula>
+      </keyCalculation>
+    </calculatedAttribute>
+  </calculatedAttributes>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="309"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="97" y="212"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>
