@@ -39,9 +39,8 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
   <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
     <viewAttributes>
       <viewAttribute id="STATUS"/>
-      <viewAttribute id="LOG_TASKCHAINID"/>
       <viewAttribute id="ENDTIME" aggregationType="max"/>
-      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="CC_Date" aggregationType="max"/>
       <viewAttribute id="SCHEMA"/>
     </viewAttributes>
     <calculatedViewAttributes/>
@@ -55,25 +54,21 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
       <descriptions defaultDescription="STATUS"/>
       <keyMapping columnObjectName="Aggregation_1" columnName="STATUS"/>
     </attribute>
-    <attribute id="LOG_TASKCHAINID" order="2" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="LOG_TASKCHAINID"/>
-      <keyMapping columnObjectName="Aggregation_1" columnName="LOG_TASKCHAINID"/>
-    </attribute>
-    <attribute id="ENDTIME" order="3" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="ENDTIME" order="2" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="ENDTIME"/>
       <keyMapping columnObjectName="Aggregation_1" columnName="ENDTIME"/>
     </attribute>
-    <attribute id="CC_Date" order="4" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="CC_Date" order="3" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="CC_Date"/>
       <keyMapping columnObjectName="Aggregation_1" columnName="CC_Date"/>
     </attribute>
-    <attribute id="SCHEMA" order="5" displayAttribute="false" attributeHierarchyActive="false">
+    <attribute id="SCHEMA" order="4" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="SCHEMA"/>
       <keyMapping columnObjectName="Aggregation_1" columnName="SCHEMA"/>
     </attribute>
   </attributes>
   <calculatedAttributes>
-    <calculatedAttribute id="CC_Status_Number" order="6" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
+    <calculatedAttribute id="CC_Status_Number" order="5" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
       <keyCalculation datatype="INTEGER" expressionLanguage="SQL">
         <formula>CASE &quot;STATUS&quot; 
 	 WHEN 'OK' then 0
