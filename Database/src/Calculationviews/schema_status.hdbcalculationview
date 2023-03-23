@@ -36,7 +36,7 @@
     <filter>to_date(&quot;STARTTIME&quot;) = add_days(to_date(CURRENT_TIMESTAMP), - 1) or
 to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
   </calculationView>
-  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+  <calculationView xsi:type="Calculation:AggregationView" id="last_status">
     <viewAttributes>
       <viewAttribute id="STATUS"/>
       <viewAttribute id="ENDTIME" aggregationType="max"/>
@@ -47,24 +47,41 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
     <restrictedViewAttributes/>
     <input node="Projection_1"/>
   </calculationView>
+  <calculationView xsi:type="Calculation:RankView" id="top1_status">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="SCHEMA"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="last_status"/>
+    <rankingFilter type="RANK" offset="0" offsetReference="FRONT" dynamicPartitionAttributes="false">
+      <partitionViewAttributeName id="SCHEMA"/>
+      <order byViewAttributeName="CC_Date" direction="DESC"/>
+      <rankThreshold>
+        <value>1</value>
+      </rankThreshold>
+    </rankingFilter>
+  </calculationView>
 </calculationViews>
-<logicalModel id="Aggregation_1">
+<logicalModel id="top1_status">
   <attributes>
     <attribute id="STATUS" order="1" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="STATUS"/>
-      <keyMapping columnObjectName="Aggregation_1" columnName="STATUS"/>
+      <keyMapping columnObjectName="top1_status" columnName="STATUS"/>
     </attribute>
     <attribute id="ENDTIME" order="2" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="ENDTIME"/>
-      <keyMapping columnObjectName="Aggregation_1" columnName="ENDTIME"/>
+      <keyMapping columnObjectName="top1_status" columnName="ENDTIME"/>
     </attribute>
     <attribute id="CC_Date" order="3" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="CC_Date"/>
-      <keyMapping columnObjectName="Aggregation_1" columnName="CC_Date"/>
+      <keyMapping columnObjectName="top1_status" columnName="CC_Date"/>
     </attribute>
     <attribute id="SCHEMA" order="4" displayAttribute="false" attributeHierarchyActive="false">
       <descriptions defaultDescription="SCHEMA"/>
-      <keyMapping columnObjectName="Aggregation_1" columnName="SCHEMA"/>
+      <keyMapping columnObjectName="top1_status" columnName="SCHEMA"/>
     </attribute>
   </attributes>
   <calculatedAttributes>
@@ -89,11 +106,16 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
     </shape>
   
     <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="92" y="309"/>
+      <upperLeftCorner x="95" y="406"/>
       <rectangleSize height="30" width="160"/>
     </shape>
-    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="97" y="212"/>
+    <shape expanded="true" modelObjectName="last_status" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="95" y="292"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="top1_status" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="95" y="208"/>
       <rectangleSize height="30" width="160"/>
     </shape>
   </shapes>
