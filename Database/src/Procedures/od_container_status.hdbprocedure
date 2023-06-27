@@ -14,17 +14,6 @@ DECLARE RUNTIME_START TIMESTAMP;
 DECLARE ENVIRONMENT,lowercase_environment NVARCHAR (10);
 DECLARE ingesttoken NVARCHAR(2500);
 DECLARE schema_name, humio_failed_schema, humio_container_name, humio_container_status NVARCHAR(50);
-/*DECLARE  OVERRIDE_ERROR, OVERRIDE_OK, OK_AMOUNT, ERR_AMOUNT BIGINT; 
-DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
-DECLARE RUNTIME_START, RUNTIME_END, LAST_RUN TIMESTAMP;
-DECLARE IS_OVERRIDE,ENVIRONMENT, HANA_LOG_NAME, lowercase_environment NVARCHAR (50);
-DECLARE  INSTANCEID, LOGID, STATUS, NAMESPACE, TASKCHAINID, SCHEDULEDECSRIPTION, STARTTIME, ENDTIME, FINISHED, RUN_TIME, DESCRIPTION, VALIDTO, CHANGEDBY, ACTIVATIONSTATUS, TASKTIMEOUT, 
-SERVICEURL, CONTAINER, MODULE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, HANA_LOG_COMMENT, RESPONSIBLE NVARCHAR (2000);
-
-*/
-
-
-
 /*
 Finds the environment in which the procedure run, and change it into DEV, TEST, PROD for readability and uniformity
 */
@@ -81,7 +70,7 @@ FOR k IN 1..RECORD_COUNT(:lt_schema) DO
 	humio_failed_schema = '';
 	FOR m IN 1..RECORD_COUNT(:container_status) DO 
 		IF :container_status."SCHEMA_NAME"[:m] != :humio_container_name THEN
-			humio_failed_schema =  :humio_failed_schema || :container_status."SCHEMA_NAME"[:m];
+			humio_failed_schema =  :humio_failed_schema ||','|| :container_status."SCHEMA_NAME"[:m];
 		END IF;
 	END FOR;
 
