@@ -42,59 +42,82 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
       <viewAttribute id="ENDTIME" aggregationType="max"/>
       <viewAttribute id="CC_Date" aggregationType="max"/>
       <viewAttribute id="SCHEMA"/>
+    
+      <viewAttribute id="LOG_TASKCHAINID"/>
     </viewAttributes>
     <calculatedViewAttributes/>
     <restrictedViewAttributes/>
     <input node="Projection_1"/>
   </calculationView>
   <calculationView xsi:type="Calculation:RankView" id="top1_status">
+    <descriptions>
+      <comment text="Consider only the latest execution of particular taskchain"/>
+    </descriptions>
     <viewAttributes>
       <viewAttribute id="STATUS"/>
       <viewAttribute id="ENDTIME"/>
       <viewAttribute id="CC_Date"/>
       <viewAttribute id="SCHEMA"/>
+    
+      <viewAttribute id="LOG_TASKCHAINID"/>
     </viewAttributes>
     <calculatedViewAttributes/>
     <input node="last_status"/>
     <rankingFilter type="RANK" offset="0" offsetReference="FRONT" dynamicPartitionAttributes="false">
       <partitionViewAttributeName id="SCHEMA"/>
+      <partitionViewAttributeName id="LOG_TASKCHAINID"/>
       <order byViewAttributeName="ENDTIME" direction="DESC"/>
       <rankThreshold>
         <value>1</value>
       </rankThreshold>
     </rankingFilter>
   </calculationView>
-</calculationViews>
-<logicalModel id="top1_status">
-  <attributes>
-    <attribute id="STATUS" order="1" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="STATUS"/>
-      <keyMapping columnObjectName="top1_status" columnName="STATUS"/>
-    </attribute>
-    <attribute id="ENDTIME" order="2" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="ENDTIME"/>
-      <keyMapping columnObjectName="top1_status" columnName="ENDTIME"/>
-    </attribute>
-    <attribute id="CC_Date" order="3" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="CC_Date"/>
-      <keyMapping columnObjectName="top1_status" columnName="CC_Date"/>
-    </attribute>
-    <attribute id="SCHEMA" order="4" displayAttribute="false" attributeHierarchyActive="false">
-      <descriptions defaultDescription="SCHEMA"/>
-      <keyMapping columnObjectName="top1_status" columnName="SCHEMA"/>
-    </attribute>
-  </attributes>
-  <calculatedAttributes>
-    <calculatedAttribute id="CC_Status_Number" order="5" semanticType="empty" displayAttribute="false" attributeHierarchyActive="false">
-      <keyCalculation datatype="INTEGER" expressionLanguage="SQL">
+  <calculationView xsi:type="Calculation:ProjectionView" id="assign_values">
+    <viewAttributes>
+      <viewAttribute id="STATUS"/>
+      <viewAttribute id="ENDTIME"/>
+      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="SCHEMA"/>
+      <viewAttribute id="LOG_TASKCHAINID"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_STATUS_NUMBER" datatype="INTEGER" expressionLanguage="SQL">
         <formula>CASE &quot;STATUS&quot; 
 	 WHEN 'OK' then 0
 	 WHEN 'ERROR' then 2
 	 WHEN 'ABORTED' then 2
  END</formula>
-      </keyCalculation>
-    </calculatedAttribute>
-  </calculatedAttributes>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="top1_status"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="evaluate_schema_status">
+    <viewAttributes>
+      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="SCHEMA"/>
+      <viewAttribute id="CC_STATUS_NUMBER" aggregationType="max"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <restrictedViewAttributes/>
+    <input node="assign_values"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="evaluate_schema_status">
+  <attributes>
+    <attribute id="CC_Date" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_Date"/>
+      <keyMapping columnObjectName="evaluate_schema_status" columnName="CC_Date"/>
+    </attribute>
+    <attribute id="SCHEMA" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SCHEMA"/>
+      <keyMapping columnObjectName="evaluate_schema_status" columnName="SCHEMA"/>
+    </attribute>
+    <attribute id="CC_STATUS_NUMBER" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_STATUS_NUMBER"/>
+      <keyMapping columnObjectName="evaluate_schema_status" columnName="CC_STATUS_NUMBER"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
   <baseMeasures/>
   <calculatedMeasures/>
   <restrictedMeasures/>
@@ -102,20 +125,31 @@ to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
 <layout>
   <shapes>
     <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
-      <upperLeftCorner x="40" y="85"/>
+      <upperLeftCorner x="92" y="112"/>
+    
+      <rectangleSize width="160"/>
     </shape>
   
     <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="95" y="406"/>
+      <upperLeftCorner x="92" y="657"/>
       <rectangleSize height="30" width="160"/>
     </shape>
     <shape expanded="true" modelObjectName="last_status" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="95" y="292"/>
+      <upperLeftCorner x="92" y="552"/>
       <rectangleSize height="30" width="160"/>
     </shape>
   
     <shape expanded="true" modelObjectName="top1_status" modelObjectNameSpace="CalculationView">
-      <upperLeftCorner x="95" y="208"/>
+      <upperLeftCorner x="92" y="427"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="assign_values" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="322"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="evaluate_schema_status" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="92" y="217"/>
       <rectangleSize height="30" width="160"/>
     </shape>
   </shapes>

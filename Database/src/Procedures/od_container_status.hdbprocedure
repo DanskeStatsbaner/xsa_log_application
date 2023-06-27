@@ -1,0 +1,106 @@
+PROCEDURE "DataWareHouse.Database.Procedures::od_container_status"( )
+LANGUAGE SQLSCRIPT
+SQL SECURITY INVOKER
+AS
+BEGIN
+/*
+Author: Marek Janczura
+Description: This procedure sends output values from ocntainer status app
+*/
+
+
+DECLARE k,m  INTEGER;  --Used in FOR-Loop
+DECLARE RUNTIME_START TIMESTAMP;
+DECLARE ENVIRONMENT,lowercase_environment NVARCHAR (10);
+DECLARE ingesttoken NVARCHAR(2500);
+DECLARE schema_name, humio_failed_schema, humio_container_name, humio_container_status NVARCHAR(50);
+/*DECLARE  OVERRIDE_ERROR, OVERRIDE_OK, OK_AMOUNT, ERR_AMOUNT BIGINT; 
+DECLARE seconds_Dif INTEGER = SECONDS_BETWEEN(CURRENT_UTCTIMESTAMP,CURRENT_TIMESTAMP);
+DECLARE RUNTIME_START, RUNTIME_END, LAST_RUN TIMESTAMP;
+DECLARE IS_OVERRIDE,ENVIRONMENT, HANA_LOG_NAME, lowercase_environment NVARCHAR (50);
+DECLARE  INSTANCEID, LOGID, STATUS, NAMESPACE, TASKCHAINID, SCHEDULEDECSRIPTION, STARTTIME, ENDTIME, FINISHED, RUN_TIME, DESCRIPTION, VALIDTO, CHANGEDBY, ACTIVATIONSTATUS, TASKTIMEOUT, 
+SERVICEURL, CONTAINER, MODULE, RESPONSIBLE_NAME, RESPONSIBLE_EMAIL, HANA_LOG_COMMENT, RESPONSIBLE NVARCHAR (2000);
+
+*/
+
+
+
+/*
+Finds the environment in which the procedure run, and change it into DEV, TEST, PROD for readability and uniformity
+*/
+
+SELECT DISTINCT
+	CASE 
+		WHEN "SYSTEM_ID" = 'NU0' THEN 'DEV'
+		WHEN "SYSTEM_ID" = 'NT0' THEN 'TEST'
+		WHEN "SYSTEM_ID" = 'NP0' THEN 'PROD'
+		END AS "Environment" INTO ENVIRONMENT
+		FROM "DataWareHouse.Database.VirtualTables::M_DATABASE";
+
+--Creates a humio token to ingest into humio. Put here before the for loop to only create it once
+
+   CALL "DataWareHouse.Database.Synonyms::token"(
+	APP => 'AP_HUMIO',
+	EXCEPTION_ON_ERROR => 1,
+	JWT => ingesttoken
+);
+
+lowercase_environment := LOWER(:ENVIRONMENT); -- Used to find  "SCHEMA" in the chains table variable.  Put here before the for loop to only define it once
+
+--Get the schema names
+lt_schema= SELECT "SCHEMA_NAME"
+	FROM "DataWareHouse.Database.Calculationviews::OD_vertex"
+	WHERE ("SCHEMA_NAME" LIKE 'SI_%'
+			OR "SCHEMA_NAME" LIKE 'CF_%'
+			OR "SCHEMA_NAME" LIKE 'P_%')
+		AND "SCHEMA_NAME" NOT LIKE '%#%';
+
+--NOTE: This is a place where we can restrict the schemas with the settings done for failed_taskchains.
+
+FOR k IN 1..RECORD_COUNT(:lt_schema) DO
+	
+	--For each schema, check the container_status
+	schema_name = :lt_schema."SCHEMA_NAME"[:k];
+	
+	container_status = 
+	--Filter out dependent schemas have no errors
+	SELECT
+		"CC_SELECTED_SCHEMA",	--container name
+		"SCHEMA_NAME",			--dependent schema name
+		"CC_Status_Number_NN", --schema status for dependent container
+		"CC_TOP_STATUS"			--container status
+	FROM "DataWareHouse.Database.Calculationviews::OD_schema_dependent"
+		(placeholder."$$IP_SCHEMA_NAME$$"=>:schema_name, 
+		placeholder."$$IP_LEVELS$$"=>1)
+		where ("SCHEMA_NAME" != "CC_SELECTED_SCHEMA" and "CC_Status_Number_NN" !=0) or "SCHEMA_NAME" = "CC_SELECTED_SCHEMA";
+	
+	--transform the table into one row for HUMIO: CONTAINER_NAME | CONTAINER_STATUS | concatnated_list_failed_schemas
+	SELECT TOP 1 "CC_SELECTED_SCHEMA" into humio_container_name FROM :container_status;
+	SELECT TOP 1 "CC_TOP_STATUS" into humio_container_status FROM :container_status;
+		/*Loops thorugh all records */        
+	humio_failed_schema = '';
+	FOR m IN 1..RECORD_COUNT(:container_status) DO 
+		IF :container_status."SCHEMA_NAME"[:m] != :humio_container_name THEN
+			humio_failed_schema =  :humio_failed_schema || :container_status."SCHEMA_NAME"[:m];
+		END IF;
+	END FOR;
+
+
+	/* Ingests the messages into humio*/
+	CALL "DataWareHouse.Database.Synonyms::humio"(
+    MESSAGE => 'HDI container status',
+    LOG_LEVEL => 'WARNING',
+    HOST => 'HANA',
+    SRC => 'od_containers_status.hdbprocedure',
+       ATTRIBUTES =>	'"ENVIRONMENT":"' || :ENVIRONMENT  
+				       || '", "CONTAINER_NAME":"' || :humio_container_name
+				       || '", "CONTAINER_STATUS":"' || :humio_container_status
+				       || '", "FAILED_SCHEMA":"' || :humio_failed_schema
+				       ||'"',
+    JWT => :ingesttoken,
+    EXCEPTION_ON_ERROR => 1
+);
+
+	
+END FOR;
+END;            

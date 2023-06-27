@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::OD_vertex" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="OD_vertex"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Tables::object.object_dependencies">
+    <resourceUri>DataWareHouse.Database.Tables::object.object_dependencies</resourceUri>
+  </DataSource>
+  <DataSource id="Projection_2$$$$DataWareHouse.Database.Tables::object.object_dependencies$$">
+    <resourceUri>DataWareHouse.Database.Tables::object.object_dependencies</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="BASE_SCHEMA_NAME"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="DataWareHouse.Database.Tables::object.object_dependencies"/>
+    <filter>&quot;BASE_SCHEMA_NAME&quot; is not null</filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+    <viewAttributes>
+      <viewAttribute id="BASE_SCHEMA_NAME"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_ID" datatype="NVARCHAR" length="32" expressionLanguage="SQL">
+        <formula>TO_VARCHAR((HASH_SHA256(to_binary(&quot;BASE_SCHEMA_NAME&quot;))))</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <restrictedViewAttributes/>
+    <input node="Union_1"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:UnionView" id="Union_1">
+    <viewAttributes>
+      <viewAttribute id="BASE_SCHEMA_NAME"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="Projection_1" emptyUnionBehavior="NO_ROW">
+      <mapping xsi:type="Calculation:AttributeMapping" target="BASE_SCHEMA_NAME" source="BASE_SCHEMA_NAME"/>
+    </input>
+    <input node="Projection_2" emptyUnionBehavior="NO_ROW">
+      <mapping xsi:type="Calculation:AttributeMapping" target="BASE_SCHEMA_NAME" source="DEPENDENT_SCHEMA_NAME"/>
+    </input>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_2" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="DEPENDENT_SCHEMA_NAME"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <input node="Projection_2$$$$DataWareHouse.Database.Tables::object.object_dependencies$$"/>
+    <filter>&quot;DEPENDENT_SCHEMA_NAME&quot; is not null</filter>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Aggregation_1">
+  <attributes>
+    <attribute id="SCHEMA_NAME" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="BASE_SCHEMA_NAME"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="BASE_SCHEMA_NAME"/>
+    </attribute>
+    <attribute id="CC_ID" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_ID"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="CC_ID"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="100" y="105"/>
+    
+      <rectangleSize width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="-16" y="376"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="108" y="175"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Union_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="108" y="276"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Projection_2" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="258" y="376"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" xmlns:Variable="http://www.sap.com/ndb/BiModelVariable.ecore" id="DataWareHouse.Database.Calculationviews::OD_container_status" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="OD_schema_status"/>
+<localVariables>
+  <variable id="IP_SCHEMA_NAME" parameter="true">
+    <descriptions defaultDescription=" "/>
+    <variableProperties datatype="NVARCHAR" length="256" scale="NaN">
+      <valueDomain type="AttributeValue">
+        <externalLikeStructureName>DataWareHouse.Database.Calculationviews::OD_edges</externalLikeStructureName>
+        <externalLikeStructureType>CALCULATION_VIEW</externalLikeStructureType>
+        <externalLikeElementName>DEPENDENT_SCHEMA_NAME</externalLikeElementName>
+      </valueDomain>
+      <selection/>
+      <defaultRange lowValue="P_BAROMETER"/>
+    </variableProperties>
+  </variable>
+  <variable id="IP_LEVELS" parameter="true">
+    <descriptions defaultDescription=" "/>
+    <variableProperties datatype="INTEGER">
+      <valueDomain type="empty"/>
+      <selection/>
+      <defaultRange lowValue="1"/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="DataWareHouse.Database.Calculationviews::OD_graph" targetType="CALCULATION_VIEW">
+    <targetVariable name="IP_SCHEMA_NAME" resourceUri="DataWareHouse.Database.Calculationviews::OD_graph"/>
+    <localVariable>IP_SCHEMA_NAME</localVariable>
+  </mapping>
+  <mapping xsi:type="Variable:VariableMapping" dataSource="DataWareHouse.Database.Calculationviews::OD_graph" targetType="CALCULATION_VIEW">
+    <targetVariable name="IP_LEVELS" resourceUri="DataWareHouse.Database.Calculationviews::OD_graph"/>
+    <localVariable>IP_LEVELS</localVariable>
+  </mapping>
+</variableMappings>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Calculationviews::OD_graph">
+    <resourceUri>DataWareHouse.Database.Calculationviews::OD_graph</resourceUri>
+  </DataSource>
+  <DataSource id="DataWareHouse.Database.Calculationviews::schema_status">
+    <resourceUri>DataWareHouse.Database.Calculationviews::schema_status</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="GRAPH">
+    <viewAttributes>
+      <viewAttribute id="SCHEMA_NAME"/>
+      <viewAttribute id="DEPTH"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_SELECTED_SCHEMA" datatype="NVARCHAR" length="256" expressionLanguage="SQL">
+        <formula>'$$IP_SCHEMA_NAME$$'</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="DataWareHouse.Database.Calculationviews::OD_graph"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:ProjectionView" id="SCHEMA_STATUS">
+    <viewAttributes>
+      <viewAttribute id="CC_Date"/>
+      <viewAttribute id="SCHEMA"/>
+      <viewAttribute id="CC_STATUS_NUMBER"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_SCHEMA_NAME" datatype="NVARCHAR" length="13" expressionLanguage="SQL">
+        <formula>UPPER(REPLACE(&quot;SCHEMA&quot;, '-', '_'))</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="DataWareHouse.Database.Calculationviews::schema_status"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="ADD_STATUS" cardinality="CN_N" joinType="leftOuter">
+    <viewAttributes>
+    
+      <viewAttribute id="CC_SELECTED_SCHEMA"/>
+      <viewAttribute id="CC_STATUS_NUMBER"/>
+      <viewAttribute hidden="true" id="JOIN$SCHEMA_NAME$CC_SCHEMA_NAME"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_Status_Number_NN" datatype="INTEGER" expressionLanguage="SQL">
+        <formula>case &quot;CC_STATUS_NUMBER&quot;
+when null then 0
+else &quot;CC_STATUS_NUMBER&quot;
+end</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="GRAPH">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_SELECTED_SCHEMA" source="CC_SELECTED_SCHEMA"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$SCHEMA_NAME$CC_SCHEMA_NAME" source="SCHEMA_NAME"/>
+    </input>
+    <input node="SCHEMA_STATUS">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_STATUS_NUMBER" source="CC_STATUS_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="JOIN$SCHEMA_NAME$CC_SCHEMA_NAME" source="CC_SCHEMA_NAME"/>
+    </input>
+    <joinAttribute name="JOIN$SCHEMA_NAME$CC_SCHEMA_NAME"/>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="Max_schemas_status">
+    <viewAttributes>
+    
+      <viewAttribute id="CC_SELECTED_SCHEMA"/>
+    
+      <viewAttribute id="CC_Status_MAX" aggregationType="max"/></viewAttributes>
+    <calculatedViewAttributes/>
+    <restrictedViewAttributes/>
+    <input node="ADD_STATUS">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_Status_MAX" source="CC_Status_Number_NN"/>
+    </input>
+  </calculationView>
+  <calculationView xsi:type="Calculation:JoinView" id="Container_status" cardinality="CN_N" joinType="leftOuter">
+    <descriptions>
+      <comment text="Add main schema status Calculate the TOP status - container status"/>
+    </descriptions>
+    <viewAttributes>
+      <viewAttribute id="CC_SELECTED_SCHEMA"/>
+    
+      <viewAttribute id="CC_Status_MAX"/>
+    
+      <viewAttribute id="CC_STATUS_NUMBER"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_TOP_STATUS" datatype="INTEGER" expressionLanguage="SQL">
+        <formula>CASE &quot;CC_STATUS_NUMBER&quot;
+    WHEN 2 then 2
+    WHEN NULL then
+        CASE &quot;CC_Status_MAX&quot;
+            WHEN NULL then 0
+	        WHEN 2 then 1
+	        WHEN 1 then 1
+	        WHEN 0 then 0
+	    END
+    ELSE 
+        CASE &quot;CC_Status_MAX&quot;
+            WHEN NULL then &quot;CC_STATUS_NUMBER&quot;
+	        WHEN 2 then 1
+	        WHEN 1 then 1
+	        WHEN 0 then 0
+	 END
+ END</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="Max_schemas_status">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_SELECTED_SCHEMA" source="CC_SELECTED_SCHEMA"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_Status_MAX" source="CC_Status_MAX"/>
+    </input>
+    <input node="SCHEMA_STATUS">
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_STATUS_NUMBER" source="CC_STATUS_NUMBER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="CC_SELECTED_SCHEMA" source="CC_SCHEMA_NAME"/>
+    </input>
+    <joinAttribute name="CC_SELECTED_SCHEMA"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Container_status">
+  <attributes>
+    <attribute id="CC_SELECTED_SCHEMA" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_SELECTED_SCHEMA"/>
+      <keyMapping columnObjectName="Container_status" columnName="CC_SELECTED_SCHEMA"/>
+    </attribute>
+    <attribute id="CC_TOP_STATUS" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_TOP_STATUS"/>
+      <keyMapping columnObjectName="Container_status" columnName="CC_TOP_STATUS"/>
+    </attribute></attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="247" y="112"/>
+    
+      <rectangleSize width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="GRAPH" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="-104" y="641"/>
+      <rectangleSize height="30" width="356"/>
+    </shape>
+    <shape expanded="true" modelObjectName="SCHEMA_STATUS" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="301" y="641"/>
+      <rectangleSize height="30" width="535"/>
+    </shape>
+    <shape expanded="true" modelObjectName="ADD_STATUS" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="187" y="481"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+    <shape modelObjectName="GRAPH" modelObjectNameSpace="ADD_STATUS" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="170"/>
+    </shape>
+    <shape modelObjectName="SCHEMA_STATUS" modelObjectNameSpace="ADD_STATUS" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="620" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Max_schemas_status" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="152" y="376"/>
+      <rectangleSize height="30" width="278"/>
+    </shape>
+    <shape expanded="true" modelObjectName="Container_status" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="145" y="217"/>
+      <rectangleSize height="30" width="262"/>
+    </shape>
+    <shape modelObjectName="Max_schemas_status" modelObjectNameSpace="Container_status" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="20" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+    <shape modelObjectName="SCHEMA_STATUS" modelObjectNameSpace="Container_status" modelObjectType="JoinNodeInput">
+      <upperLeftCorner x="320" y="30"/>
+      <rectangleSize width="250"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

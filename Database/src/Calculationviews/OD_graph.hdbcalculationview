@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::OD_graph" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false">
+<descriptions defaultDescription="OD_graph"/>
+<localVariables>
+  <variable id="IP_SCHEMA_NAME" parameter="true">
+    <descriptions defaultDescription=""/>
+    <variableProperties datatype="NVARCHAR" length="256" mandatory="true" defaultValue="P_BAROMETER" scale="null">
+      <valueDomain type="AttributeValue">
+        <externalLikeStructureName>DataWareHouse.Database.Calculationviews::OD_edges</externalLikeStructureName>
+        <externalLikeStructureType>CALCULATION_VIEW</externalLikeStructureType>
+        <externalLikeElementName>DEPENDENT_SCHEMA_NAME</externalLikeElementName>
+      </valueDomain>
+      <selection multiLine="false" type="SingleValue"/>
+    </variableProperties>
+  </variable>
+
+  <variable id="IP_LEVELS" parameter="true">
+    <descriptions defaultDescription=""/>
+    <variableProperties datatype="INTEGER" mandatory="true" defaultValue="1">
+      <valueDomain type="empty"/>
+      <selection multiLine="false" type="SingleValue"/>
+    </variableProperties>
+  </variable>
+</localVariables>
+<variableMappings/>
+<dataSources/>
+<calculationViews>
+  <calculationView xsi:type="Calculation:GraphView" id="Graph_1" workspace="DataWareHouse.Database.Graphs::OD_graph" action="GET_NEIGHBORHOOD">
+    <viewAttributes>
+      <viewAttribute datatype="NVARCHAR" length="256" id="SCHEMA_NAME"/>
+      <viewAttribute datatype="INTEGER" id="DEPTH"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <getNeighborhoodParameterization>
+      <startVerticesParameter>IP_SCHEMA_NAME</startVerticesParameter>
+      <direction>outgoing</direction>
+      <minDepth>0</minDepth>
+      <maxDepthParameter>IP_LEVELS</maxDepthParameter>
+      <vertexFilter></vertexFilter>
+      <edgeFilter></edgeFilter>
+    </getNeighborhoodParameterization>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Graph_1">
+  <attributes>
+    <attribute id="SCHEMA_NAME" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="SCHEMA_NAME"/>
+      <keyMapping columnObjectName="Graph_1" columnName="SCHEMA_NAME"/>
+    </attribute>
+    <attribute id="DEPTH" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DEPTH"/>
+      <keyMapping columnObjectName="Graph_1" columnName="DEPTH"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="100" y="168"/>
+    
+      <rectangleSize width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Graph_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="100" y="289"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

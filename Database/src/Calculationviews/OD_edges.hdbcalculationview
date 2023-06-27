@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Calculation:scenario xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:Calculation="http://www.sap.com/ndb/BiModelCalculation.ecore" id="DataWareHouse.Database.Calculationviews::OD_edges" applyPrivilegeType="NONE" dataCategory="DIMENSION" dimensionType="STANDARD" schemaVersion="3.0" outputViewType="Projection" cacheInvalidationPeriod="NONE" enforceSqlExecution="false" runWithInvokerPrivileges="false">
+<descriptions defaultDescription="OD_edges"/>
+<localVariables/>
+<variableMappings/>
+<dataSources>
+  <DataSource id="DataWareHouse.Database.Tables::object.object_dependencies">
+    <resourceUri>DataWareHouse.Database.Tables::object.object_dependencies</resourceUri>
+  </DataSource>
+</dataSources>
+<calculationViews>
+  <calculationView xsi:type="Calculation:ProjectionView" id="Projection_1" filterExpressionLanguage="SQL">
+    <viewAttributes>
+      <viewAttribute id="BASE_DATABASE_NAME"/>
+      <viewAttribute id="BASE_SCHEMA_NAME"/>
+      <viewAttribute id="BASE_OBJECT_NAME"/>
+      <viewAttribute id="BASE_OBJECT_TYPE"/>
+      <viewAttribute id="DEPENDENT_DATABASE_NAME"/>
+      <viewAttribute id="DEPENDENT_SCHEMA_NAME"/>
+      <viewAttribute id="DEPENDENT_OBJECT_NAME"/>
+      <viewAttribute id="DEPENDENT_OBJECT_TYPE"/>
+      <viewAttribute id="DEPENDENCY_TYPE"/>
+    </viewAttributes>
+    <calculatedViewAttributes>
+      <calculatedViewAttribute id="CC_ID" datatype="NVARCHAR" length="32" expressionLanguage="SQL">
+        <formula>TO_VARCHAR((HASH_SHA256(to_binary(&quot;DEPENDENT_SCHEMA_NAME&quot;),to_binary(&quot;BASE_SCHEMA_NAME&quot;))))</formula>
+      </calculatedViewAttribute>
+    </calculatedViewAttributes>
+    <input node="DataWareHouse.Database.Tables::object.object_dependencies"/>
+    <filter>&quot;BASE_SCHEMA_NAME&quot; is not null 
+AND &quot;DEPENDENT_SCHEMA_NAME&quot; is not null </filter>
+  </calculationView>
+  <calculationView xsi:type="Calculation:AggregationView" id="Aggregation_1">
+    <viewAttributes>
+      <viewAttribute id="BASE_SCHEMA_NAME"/>
+      <viewAttribute id="DEPENDENT_SCHEMA_NAME"/>
+      <viewAttribute id="CC_ID"/>
+    </viewAttributes>
+    <calculatedViewAttributes/>
+    <restrictedViewAttributes/>
+    <input node="Projection_1"/>
+  </calculationView>
+</calculationViews>
+<logicalModel id="Aggregation_1">
+  <attributes>
+    <attribute id="CC_ID" order="1" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="CC_ID"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="CC_ID"/>
+    </attribute>
+    <attribute id="BASE_SCHEMA_NAME" order="2" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="BASE_SCHEMA_NAME"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="BASE_SCHEMA_NAME"/>
+    </attribute>
+    <attribute id="DEPENDENT_SCHEMA_NAME" order="3" displayAttribute="false" attributeHierarchyActive="false">
+      <descriptions defaultDescription="DEPENDENT_SCHEMA_NAME"/>
+      <keyMapping columnObjectName="Aggregation_1" columnName="DEPENDENT_SCHEMA_NAME"/>
+    </attribute>
+  </attributes>
+  <calculatedAttributes/>
+  <baseMeasures/>
+  <calculatedMeasures/>
+  <restrictedMeasures/>
+</logicalModel>
+<layout>
+  <shapes>
+    <shape expanded="true" modelObjectName="Output" modelObjectNameSpace="MeasureGroup">
+      <upperLeftCorner x="40" y="85"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Projection_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="110" y="381"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  
+    <shape expanded="true" modelObjectName="Aggregation_1" modelObjectNameSpace="CalculationView">
+      <upperLeftCorner x="105" y="232"/>
+      <rectangleSize height="30" width="160"/>
+    </shape>
+  </shapes>
+</layout>
+</Calculation:scenario>

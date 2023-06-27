@@ -1,0 +1,10 @@
+graph workspace
+"DataWareHouse.Database.Graphs::OD_graph"
+edge table
+"DataWareHouse.Database.Calculationviews::OD_edges"
+source column "DEPENDENT_SCHEMA_NAME"
+target column 	"BASE_SCHEMA_NAME"
+key column "CC_ID"
+vertex table
+"DataWareHouse.Database.Calculationviews::OD_vertex"
+key column 	"SCHEMA_NAME"
