@@ -70,7 +70,10 @@ FOR k IN 1..RECORD_COUNT(:lt_schema) DO
 	humio_failed_schema = '';
 	FOR m IN 1..RECORD_COUNT(:container_status) DO 
 		IF :container_status."SCHEMA_NAME"[:m] != :humio_container_name THEN
-			humio_failed_schema =  :humio_failed_schema ||','|| :container_status."SCHEMA_NAME"[:m];
+			IF humio_failed_schema != '' THEN
+					humio_failed_schema =  :humio_failed_schema ||','|| :container_status."SCHEMA_NAME"[:m];
+			ELSE	humio_failed_schema =  :container_status."SCHEMA_NAME"[:m];
+			END IF;
 		END IF;
 	END FOR;
 
