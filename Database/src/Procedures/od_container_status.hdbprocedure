@@ -80,7 +80,7 @@ FOR k IN 1..RECORD_COUNT(:lt_schema) DO
 
 	/* Ingests the messages into humio*/
 	CALL "DataWareHouse.Database.Synonyms::humio"(
-    MESSAGE => 'HDI container status',
+    MESSAGE => 'HDI container status 2',
     LOG_LEVEL => 'WARNING',
     HOST => 'HANA',
     SRC => 'od_containers_status.hdbprocedure',

@@ -30,12 +30,15 @@ DECLARE ingesttoken NVARCHAR(2500);
 
 RUNTIME_START = CURRENT_TIMESTAMP; -- Used to store information about procedure run
 HANA_LOG_NAME ='failed_taskchains'; -- Used to store information about procedure run
-SELECT IFNULL(MAX("RUNTIME_START"),'2022-06-08 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run"; --Used to define when to run in where clause.
 
+SELECT IFNULL(MAX("RUNTIME_START"),'2022-06-08 00:00:00') INTO LAST_RUN FROM "DataWareHouse.Database.Tables::log.procedure_run"; --Used to define when to run in where clause.
 /*
 Runs in all procedures containing humio ingestion.
 Finds the environment in which the procedure run, and change it into DEV, TEST, PROD for readability and uniformity
 */
+/*
+Clean the temporary table - that keeps tha data for object-dependency*/
+DELETE FROM "DataWareHouse.Database.Tables::object.failed_taskchains";
 
 SELECT DISTINCT
 	CASE 
@@ -97,7 +100,9 @@ FROM "DataWareHouse.Database.Tables::log.log_rules"
 ORDER BY "ID"
 ;
 
+SELECT * FROM :override;
 --Creates a humio token to ingest into humio. Put here before the for loop to only create it once
+
 
    CALL "DataWareHouse.Database.Synonyms::token"(
 	APP => 'AP_HUMIO',
@@ -139,7 +144,7 @@ OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
                 WHERE UPPER(Log.TASKCHAINID) = UPPER(:TASKCHAINID)  AND  UPPER(SUBSTR_REGEXPR('(?<=https://orgname-'||:lowercase_environment||'-)(.*?)(?=-backend)'IN  TaskService.SERVICEURI)) = UPPER(:CONTAINER)
               ;
             
-           
+   
             
          /* If override ok rule is setup, this inserts the amount of OK runs for the given time periode into the OK_AMOUNT variable for further check in the :errors table variable*/
             SELECT COUNT(*) INTO OK_AMOUNT
@@ -172,7 +177,7 @@ OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
             				(:ERR_AMOUNT >=  OVERRIDE_ERROR_AMOUNT AND OVERRIDE_ERROR_AMOUNT IS NOT NULL AND OVERRIDE_ERROR > 0) 
             					OR (:OK_AMOUNT < OVERRIDE_OK_AMOUNT   AND OVERRIDE_OK_AMOUNT IS NOT NULL  AND OVERRIDE_OK > 0)))
                  ORDER BY STARTTIME DESC;
-                
+               
                 /*We don't want to send all failed chains in the given time periode, so we only log the latest failure since last run */
                humio = SELECT * FROM :errors WHERE ROWNUMBER = 1;
                
@@ -216,8 +221,16 @@ OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
 					
                
                INSERT INTO "DataWareHouse.Database.Tables::log.warning_mails" SELECT  LOG_RULES_ID, MAIL_GROUP_ID FROM :warning_mails; -- insert into :warning_mails table for later use in mail_sender module
+ 
+ 
+ INSERT INTO "DataWareHouse.Database.Tables::object.failed_taskchains" 
+		SELECT  STARTTIME, ENDTIME,INSTANCEID,SCHEMA,LOG_TASKCHAINID,STATUS FROM :humio; 
+		-- insert end result from this into the table  - selected taskchains that failed and are set to be monitored.
+		-- this table will be used by container status app: schema_status cv - so that both failted_taskchains and container_status module relies on the same data.
+		
 
-               
+           
+           
        /*Loops thorugh all records in the humio table to ingest them one row at a time into humio */        
 FOR k IN 1..RECORD_COUNT(:humio) DO 
 		INSTANCEID = IFNULL(:humio."INSTANCEID"[:k],'NA');
@@ -236,6 +249,10 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
 		RESPONSIBLE = IFNULL(:humio."RESPONSIBLE"[:k],'NA');
 	
 		/* Ingests the messages into humio*/
+		
+		
+		
+
 	CALL "DataWareHouse.Database.Synonyms::humio"(
     MESSAGE => 'Native HANA system log',
     LOG_LEVEL => 'WARNING',
@@ -248,12 +265,14 @@ FOR k IN 1..RECORD_COUNT(:humio) DO
     JWT => :ingesttoken,
     EXCEPTION_ON_ERROR => 1
 );
+
 END FOR;
 
 END FOR;
 
 /* Modification 24.08.2022
 DAT5-2254, Marek Janczura*/
+
 CALL "DataWareHouse.Database.Synonyms::humio"(
     MESSAGE => 'Native HANA system log',
     LOG_LEVEL => 'DUMMY row',

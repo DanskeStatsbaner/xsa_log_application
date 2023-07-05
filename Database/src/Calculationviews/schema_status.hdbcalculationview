@@ -4,8 +4,8 @@
 <localVariables/>
 <variableMappings/>
 <dataSources>
-  <DataSource id="DataWareHouse.Database.Calculationviews::taskchains_actual">
-    <resourceUri>DataWareHouse.Database.Calculationviews::taskchains_actual</resourceUri>
+  <DataSource id="DataWareHouse.Database.Tables::object.failed_taskchains">
+    <resourceUri>DataWareHouse.Database.Tables::object.failed_taskchains</resourceUri>
   </DataSource>
 </dataSources>
 <calculationViews>
@@ -13,29 +13,21 @@
     <viewAttributes>
       <viewAttribute id="INSTANCEID"/>
       <viewAttribute id="STATUS"/>
-      <viewAttribute id="NAMESPACE"/>
       <viewAttribute id="LOG_TASKCHAINID"/>
       <viewAttribute id="STARTTIME"/>
       <viewAttribute id="ENDTIME"/>
-      <viewAttribute id="FINISHED"/>
-      <viewAttribute id="SCHEMA"/>
-      <viewAttribute id="RUN_TIME"/>
-      <viewAttribute id="DESCRIPTION"/>
-      <viewAttribute id="COUNT"/>
-    </viewAttributes>
+      <viewAttribute id="SCHEMA"/></viewAttributes>
     <calculatedViewAttributes>
       <calculatedViewAttribute id="CC_Date" datatype="DATE" expressionLanguage="SQL">
         <formula>TO_DATE(&quot;ENDTIME&quot;)</formula>
       </calculatedViewAttribute>
     </calculatedViewAttributes>
-    <input node="DataWareHouse.Database.Calculationviews::taskchains_actual">
+    <input node="DataWareHouse.Database.Tables::object.failed_taskchains">
       <mapping xsi:type="Calculation:AttributeMapping" target="LOG_TASKCHAINID" source="TASKCHAINID"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="SCHEMA" source="CC_schema"/>
-      <mapping xsi:type="Calculation:AttributeMapping" target="COUNT" source="CC_Count"/>
-    </input>
-    <filter>to_date(&quot;STARTTIME&quot;) = add_days(to_date(CURRENT_TIMESTAMP), - 1) or
-to_date(&quot;STARTTIME&quot;) = to_date(CURRENT_TIMESTAMP)</filter>
-  </calculationView>
+      <mapping xsi:type="Calculation:AttributeMapping" target="SCHEMA" source="CONTAINER"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="STARTTIME" source="START_TIME"/>
+      <mapping xsi:type="Calculation:AttributeMapping" target="ENDTIME" source="END_TIME"/>
+    </input></calculationView>
   <calculationView xsi:type="Calculation:AggregationView" id="last_status">
     <viewAttributes>
       <viewAttribute id="STATUS"/>

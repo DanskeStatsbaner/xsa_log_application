@@ -1,0 +1,48 @@
+{
+  "taskList": {
+    "1": {
+      "inline": {
+        "type": "START",
+        "taskGroup": "com.sap.dwf.toe.executionControl"
+      }
+    },
+    "2": {
+      "inline": {
+        "type": "SUB",
+        "taskGroup": "com.sap.dwf.toe.executionControl",
+        "description": "failed_taskchains",
+        "parameterValues": [
+          {
+            "id": "taskChainId",
+            "value": "DataWareHouse.Processes.Taskchains#failed_taskchains"
+          }
+        ]
+      },
+      "preconditions": [
+        {
+          "from": "1",
+          "status": "NEUTRAL"
+        }
+      ]
+    },
+    "3": {
+      "inline": {
+        "type": "SUB",
+        "taskGroup": "com.sap.dwf.toe.executionControl",
+        "description": "container_status",
+        "parameterValues": [
+          {
+            "id": "taskChainId",
+            "value": "DataWareHouse.Processes.Taskchains#od_container_status_humio"
+          }
+        ]
+      },
+      "preconditions": [
+        {
+          "from": "2",
+          "status": "OK"
+        }
+      ]
+    }
+  }
+}

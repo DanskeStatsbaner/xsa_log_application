@@ -19,8 +19,16 @@ context object {
     };
         
     entity schema_status {
-    
 	SCHEMA_NAME : String(256);
 	Status : Integer;
     };
+    
+    entity failed_taskchains{
+		START_TIME :  UTCTimestamp not null;
+    	END_TIME	: UTCTimestamp not null;
+    	INSTANCEID	: String(1024) not null;
+    	CONTAINER	: String(1024) not null;
+    	TASKCHAINID : String(1024) not null;
+    	STATUS	: hana.VARCHAR(32);
+    }
 };
