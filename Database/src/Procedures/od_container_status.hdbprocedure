@@ -41,6 +41,7 @@ lt_schema= SELECT "SCHEMA_NAME"
 	FROM "DataWareHouse.Database.Calculationviews::OD_vertex"
 	WHERE ("SCHEMA_NAME" LIKE 'SI_%'
 			OR "SCHEMA_NAME" LIKE 'CF_%'
+			OR "SCHEMA_NAME" LIKE 'XSA_%'
 			OR "SCHEMA_NAME" LIKE 'P_%')
 		AND "SCHEMA_NAME" NOT LIKE '%#%';
 
