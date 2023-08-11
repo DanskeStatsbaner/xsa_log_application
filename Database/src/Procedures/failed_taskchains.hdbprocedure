@@ -224,7 +224,8 @@ OVERRIDE_ERROR = :override."OVERRIDE_OK"[:k];
  
  
  INSERT INTO "DataWareHouse.Database.Tables::object.failed_taskchains" 
-		SELECT  STARTTIME, ENDTIME,INSTANCEID,SCHEMA,LOG_TASKCHAINID,STATUS FROM :humio; 
+		SELECT  STARTTIME, ENDTIME,INSTANCEID,SCHEMA,LOG_TASKCHAINID,STATUS FROM :humio
+		WHERE ENDTIME is not null;
 		-- insert end result from this into the table  - selected taskchains that failed and are set to be monitored.
 		-- this table will be used by container status app: schema_status cv - so that both failted_taskchains and container_status module relies on the same data.
 		
