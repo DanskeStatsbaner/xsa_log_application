@@ -16,7 +16,7 @@ pipeline {
         daProject = "${env.GIT_URL.replaceFirst(/^.*\/([^\/]+?).git$/, '$1')}"
         projectName  = "${daProject.toLowerCase()}"
         deployTo = "sit"
-        version = "1.0.0.${env.BUILD_NUMBER}"
+        version = "2.0.0.${env.BUILD_NUMBER}"
         suffix = "${env.GIT_COMMIT}-${env.GIT_BRANCH.replace('/', '-')}"
         packageVersion = "${version}-${suffix}"
         jobName = "${daProject.toUpperCase()}"
